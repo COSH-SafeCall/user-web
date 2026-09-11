@@ -1,0 +1,23 @@
+{
+    "name":  "safecall-user-web",
+    "version":  "0.1.0",
+    "private":  true,
+    "type":  "module",
+    "scripts":  {
+                    "dev":  "vite --host 0.0.0.0 --port 8083",
+                    "build":  "tsc -b \u0026\u0026 vite build",
+                    "preview":  "vite preview --host 0.0.0.0 --port 8083",
+                    "typecheck":  "tsc --noEmit"
+                },
+    "dependencies":  {
+                         "react":  "latest",
+                         "react-dom":  "latest"
+                     },
+    "devDependencies":  {
+                            "@types/react":  "latest",
+                            "@types/react-dom":  "latest",
+                            "@vitejs/plugin-react":  "4.3.4",
+                            "typescript":  "latest",
+                            "vite":  "5.4.21"
+                        }
+}
