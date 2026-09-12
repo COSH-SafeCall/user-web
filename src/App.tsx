@@ -210,16 +210,16 @@ function Pager({ active }: { active: number }) {
 
 function PersonaUse({ go, selected, setSelected }: { go: Go; selected: number; setSelected: (value: number) => void }) {
   const choices: [IconName, string][] = [["directions_walk", "누군가 따라오는\n것 같아요"], ["directions_car", "택시 안이\n불안해요"], ["business_center", "낯선 사람이\n근처에 있어요"], ["groups", "혼자 귀가하기\n무서워요"]];
-  return <GenericPersona title="어떤 상황에서 안심 통화를 사용하시나요?" active={0} go={go} next={() => go("personaPeople")}><div className="choice-grid">{choices.map(([icon, text], index) => <button className={selected === index ? "selected" : ""} key={text} onClick={() => setSelected(index)}><span><Icon name={icon} size={72} /></span><b>{text}</b></button>)}</div></GenericPersona>;
+  return <GenericPersona title="어떤 상황에서 안심 통화를 사용하시나요?" active={0} go={go} back={() => go("home")} next={() => go("personaPeople")}><div className="choice-grid">{choices.map(([icon, text], index) => <button className={selected === index ? "selected" : ""} key={text} onClick={() => setSelected(index)}><span><Icon name={icon} size={72} /></span><b>{text}</b></button>)}</div></GenericPersona>;
 }
 
 function PersonaPeople({ go, selected, setSelected }: { go: Go; selected: number; setSelected: (value: number) => void }) {
   const people = [[father, "아빠"], [mother, "엄마"], [friend, "친구"]];
-  return <GenericPersona title="통화하고 싶은 가상의 인물을 선택해주세요." active={1} go={go} next={() => go("callSetupCheck")}><div className="people-row">{people.map(([img, label], index) => <button key={label} onClick={() => setSelected(index)}><img className={selected === index ? "selected" : ""} src={img} alt={label} /><b>{label}</b></button>)}</div></GenericPersona>;
+  return <GenericPersona title="통화하고 싶은 가상의 인물을 선택해주세요." active={1} go={go} back={() => go("personaUse")} next={() => go("callSetupCheck")}><div className="people-row">{people.map(([img, label], index) => <button key={label} onClick={() => setSelected(index)}><img className={selected === index ? "selected" : ""} src={img} alt={label} /><b>{label}</b></button>)}</div></GenericPersona>;
 }
 
-function GenericPersona({ children, title, active, go, next }: { children: React.ReactNode; title: string; active: number; go: Go; next: () => void }) {
-  return <Canvas className="persona"><div className="persona-top"><button onClick={() => go("home")}><Icon name="keyboard_arrow_left" size={52} /></button><Pager active={active} /><button onClick={next}><Icon name="keyboard_arrow_right" size={52} /></button></div><h1>{title}</h1>{children}<BottomButton label="다음" onClick={next} /><BottomPeek /></Canvas>;
+function GenericPersona({ children, title, active, back, next }: { children: React.ReactNode; title: string; active: number; go: Go; back: () => void; next: () => void }) {
+  return <Canvas className="persona"><div className="persona-top"><button onClick={back}><Icon name="keyboard_arrow_left" size={52} /></button><Pager active={active} /><button onClick={next}><Icon name="keyboard_arrow_right" size={52} /></button></div><h1>{title}</h1>{children}<BottomButton label="다음" onClick={next} /><BottomPeek /></Canvas>;
 }
 
 function CallSetupCheck({ go }: { go: Go }) {
@@ -231,7 +231,34 @@ function VoiceLoading({ go }: { go: Go }) {
 }
 
 function Home({ go, drawerOpen, setDrawerOpen }: { go: Go; drawerOpen: boolean; setDrawerOpen: (open: boolean) => void }) {
-  return <Canvas className="home"><button className="home-settings" onClick={() => go("setting")}><Icon name="settings" size={39} /></button><button className="home-help" onClick={() => go("help")}><Icon name="help" size={39} /></button><section className="home-copy"><h1>눌러서 AI 안심통화를 시작하세요</h1><p>가상 통화는 실제 신고나 구조를 대신하지 않습니다.</p></section><button className="call-main" onClick={() => go("personaUse")}><Icon name="phone" size={108} /><Icon name="add" size={55} /></button><p className="home-status">긴급 메시지 기능이 <b>사용 가능</b>합니다.<br />긴급 메시지 위치 전송이 <em>사용 불가</em>합니다.</p><button className="drawer-handle" onClick={() => setDrawerOpen(!drawerOpen)}><span /></button>{drawerOpen && <section className="home-drawer" onClick={() => setDrawerOpen(false)}><span /><p>전원 버튼을 5번 연속으로 눌러 <b>긴급 호출 기능</b>을 실행시킬 수 있습니다.<br /><br />하단 볼륨 버튼을 3초 이상 눌러 <b>긴급 문자 보내기 기능</b>을 실행시킬 수 있습니다.<br /><br />긴급 호출 기능(긴급 SOS 기능)은 SafeCall 과 별개로 항상 작동되니 실수로 실행시키지 않도록 주의해 주십시오. 긴급 문자 보내기 기능은 앱 실행중에만 실행 가능합니다.</p></section>}</Canvas>;
+  return (
+    <Canvas className="home">
+      <button className="home-settings" onClick={() => go("setting")}><Icon name="settings" size={30} /></button>
+      <button className="home-help" onClick={() => go("help")}><Icon name="help" size={32} /></button>
+      <section className="home-copy">
+        <h1>눌러서 AI 안심통화를 시작하세요</h1>
+        <p>가상 통화는 실제 신고나 구조를 대신하지 않습니다.</p>
+      </section>
+      <button className="call-main" onClick={() => go("personaUse")}>
+        <Icon name="phone" size={72} />
+        <Icon name="add" size={52} />
+      </button>
+      <p className="home-status">
+        긴급 메시지 기능이 <b>사용 가능</b>합니다.<br />
+        긴급 메시지 위치 전송이 <em>사용 불가</em>합니다.
+      </p>
+      <button className={`drawer-handle ${drawerOpen ? "open" : "closed"}`} onClick={() => setDrawerOpen(!drawerOpen)}><span /></button>
+      {drawerOpen && (
+        <section className="home-drawer" onClick={() => setDrawerOpen(false)}>
+          <p>
+            전원 버튼을 5번 연속으로 눌러 <b>긴급 호출 기능</b>을 실행시킬 수 있습니다.<br /><br />
+            하단 볼륨 버튼을 3초 이상 눌러 <b>긴급 문자 보내기 기능</b>을 실행시킬 수 있습니다.<br /><br />
+            긴급 호출 기능(긴급 SOS 기능)은 SafeCall 과 별개로 항상 작동되니 실수로 실행시키지 않도록 주의해 주십시오. 긴급 문자 보내기 기능은 앱 실행중에만 실행 가능합니다.
+          </p>
+        </section>
+      )}
+    </Canvas>
+  );
 }
 
 function HelpScreen({ go, open }: { go: Go; open?: boolean }) {
@@ -272,3 +299,4 @@ function Withdraw({ go }: { go: Go }) {
 function BottomPeek() {
   return <div className="bottom-peek"><span /></div>;
 }
+
