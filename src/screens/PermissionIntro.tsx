@@ -85,7 +85,7 @@ export function PermissionIntro({
         </p>
         <BottomButton
           label="다음"
-          onClick={() => go(sos ? "sosSystem" : "callPermission")}
+          onClick={() => go(sos ? "complete" : "permissionSos")}
         />
       </div>
       {kakaoFailure && <KakaoFailureModal onConfirm={() => go("profile")} />}
@@ -126,3 +126,4 @@ function KakaoFailureModal({ onConfirm }: { onConfirm: () => void }) {
     </div>
   );
 }
+

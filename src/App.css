@@ -1,7 +1,7 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+﻿@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
 :root {
-  --font-main: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-service-title: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-main: "Pretendard", sans-serif;
+  --font-service-title: "Pretendard", sans-serif;
 }
 * {
   box-sizing: border-box;
@@ -223,6 +223,11 @@ img { display: block; }
 .persona-options { position: absolute; top: 174px; left: 50%; transform: translateX(-50%); width: min(calc(100% - 40px), 362px); margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 100px)); justify-content: space-between; column-gap: 0; row-gap: 28px; }
 .persona-options button { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 0; white-space: pre-line; }
 .persona-circle { width: 100px; height: 100px; border-radius: 50%; background: #fff; color: #6366f1; display: grid; place-items: center; }
+.persona-react-icon { color: currentColor; }
+.persona-react-icon.run { width: 70px; height: 70px; }
+.persona-react-icon.car { width: 69px; height: 69px; }
+.persona-react-icon.voice { width: 60px; height: 60px; }
+.persona-react-icon.groups { width: 74px; height: 74px; }
 .persona-options .selected .persona-circle { background: #6366f1; color: #fff; }
 .persona-photo { width: 90px; height: 90px; margin: 5px 0; border-radius: 50%; object-fit: cover; }
 .persona-options .selected .persona-photo { outline: 6px solid #6366f1; outline-offset: 0; }
@@ -240,6 +245,9 @@ img { display: block; }
 .call-check .icon-button { width: 42px; height: 42px; }
 .call-check .header::after { content: ""; width: 42px; height: 42px; }
 .call-check .check-icons .icon { font-size: 72px !important; }
+.check-react-icon { color: currentColor; }
+.check-react-icon.wifi { width: 72px; height: 72px; }
+.check-react-icon.volume { width: 78px; height: 78px; }
 .call-check .bottom-button { bottom: 10px; }
 .voice-loading { position: relative; display: block; color: #fff; }
 .voice-loading h1 { position: absolute; top: 145px; left: 0; right: 0; margin: 0; text-align: center; font-size: 20px; line-height: 30px; font-weight: 400; letter-spacing: -.2px; }
@@ -331,6 +339,7 @@ img { display: block; }
 .ring-actions .answer::before { background: #20e542; }
 .ring-actions .decline::before { background: #ef4444; }
 .ring-actions .icon { position: relative; z-index: 1; }
+.ring-call-icon { position: relative; z-index: 1; width: 32px; height: 32px; color: #fff; }
 .call-active { position: relative; display: block; color: #fff; }
 .call-time { position: absolute; top: 115px; left: 0; right: 0; margin: 0; text-align: center; font-size: 16px; line-height: 19px; font-weight: 400; }
 .call-active h1 { position: absolute; top: 186px; left: 0; right: 0; margin: 0; text-align: center; font-size: 36px; line-height: 43px; font-weight: 400; letter-spacing: -.4px; }
@@ -340,8 +349,16 @@ img { display: block; }
 .call-pad button { display: flex; flex-direction: column; align-items: center; gap: 9px; min-width: 0; }
 .call-pad button span { white-space: nowrap; font-size: 14px; line-height: 18px; font-weight: 400; }
 .call-pad .icon { font-size: 36px !important; }
+.call-control-icon { color: #fff; }
+.call-control-icon.cassette { width: 36px; height: 36px; }
+.call-control-icon.video { width: 36px; height: 36px; }
+.call-control-icon.bluetooth { width: 38px; height: 38px; }
+.call-control-icon.volume { width: 38px; height: 38px; }
+.call-control-icon.mic-off { width: 38px; height: 38px; }
+.call-control-icon.dialpad { width: 36px; height: 36px; }
 .call-pad .end { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); width: 60px; height: 60px; border-radius: 50%; background: #ef4444; display: grid; place-items: center; }
 .call-pad .end .icon { font-size: 38px !important; }
+.call-end-icon { width: 38px; height: 38px; color: #fff; }
 .call-bottom { position: absolute; top: 814px; left: 50%; transform: translateX(-50%); width: min(calc(100% - 60px), 360px); margin: 0; text-align: center; white-space: nowrap; font-size: 10px; line-height: 15px; font-weight: 700; }
 
 @media (max-width: 401px) {
@@ -399,9 +416,9 @@ img { display: block; }
     max-height: 100vh;
     flex: 0 0 calc(402px * var(--desktop-phone-scale));
     transform: none;
-    border: 1px solid rgba(0,0,0,.16);
+    border: 0;
     border-radius: 0;
-    box-shadow: 0 0 0 1px rgba(255,255,255,.4);
+    box-shadow: none;
   }
 
   .canvas {
@@ -415,6 +432,15 @@ img { display: block; }
     transform-origin: top left;
   }
 }
+
+
+
+
+
+
+
+
+
 
 
 

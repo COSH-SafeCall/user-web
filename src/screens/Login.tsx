@@ -13,7 +13,7 @@ export function Login({ go }: { go: Go }) {
         <h1>SafeCall</h1>
       </section>
       <section className="login-actions">
-        <button className="kakao-button" onClick={() => go("kakao")}>
+        <button className="kakao-button" onClick={() => go("profile")}>
           <Icon name="chat" size={18} />
           카카오 로그인
           <span />
@@ -25,3 +25,4 @@ export function Login({ go }: { go: Go }) {
     </Canvas>
   );
 }
+

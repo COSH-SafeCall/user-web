@@ -1,18 +1,47 @@
 ﻿import type { ReactNode } from "react";
+import type { IconType } from "react-icons";
+import {
+  MdDirectionsCarFilled,
+  MdDirectionsRun,
+  MdOutlineGroups,
+  MdRecordVoiceOver,
+} from "react-icons/md";
 import father from "../assets/figma/raw-image-1.jpeg";
 import mother from "../assets/figma/raw-image-3.jpeg";
 import friend from "../assets/figma/raw-image-5.jpeg";
 import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
 import { Icon } from "../components/Icon";
-import type { Go, IconName } from "../types";
+import type { Go } from "../types";
 import { BottomPeek } from "./shared/BottomPeek";
 
-const situationChoices: [IconName, string][] = [
-  ["directions_walk", "누군가 따라오는\n것 같아요"],
-  ["directions_car", "택시 안이\n불안해요"],
-  ["business_center", "낯선 사람이\n근처에 있어요"],
-  ["groups", "혼자 귀가하기\n무서워요"],
+type SituationChoice = {
+  icon: IconType;
+  iconClass: string;
+  text: string;
+};
+
+const situationChoices: SituationChoice[] = [
+  {
+    icon: MdDirectionsRun,
+    iconClass: "run",
+    text: "누군가 따라오는\n것 같아요",
+  },
+  {
+    icon: MdDirectionsCarFilled,
+    iconClass: "car",
+    text: "택시 안이\n불안해요",
+  },
+  {
+    icon: MdRecordVoiceOver,
+    iconClass: "voice",
+    text: "낯선 사람이\n근처에 있어요",
+  },
+  {
+    icon: MdOutlineGroups,
+    iconClass: "groups",
+    text: "혼자 귀가하기\n무서워요",
+  },
 ];
 
 const people = [
@@ -44,22 +73,26 @@ export function PersonaUse({
     <GenericPersona
       title="어떤 상황에서 안심 통화를 사용하시나요?"
       active={0}
-      go={go}
       back={() => go("home")}
       next={() => go("personaPeople")}
     >
-      {situationChoices.map(([icon, text], index) => (
-        <button
-          className={selected === index ? "selected" : ""}
-          key={text}
-          onClick={() => setSelected(index)}
-        >
-          <span className="persona-circle">
-            <Icon name={icon} size={72} />
-          </span>
-          <b>{text}</b>
-        </button>
-      ))}
+      {situationChoices.map(
+        ({ icon: SituationIcon, iconClass, text }, index) => (
+          <button
+            className={selected === index ? "selected" : ""}
+            key={text}
+            onClick={() => setSelected(index)}
+          >
+            <span className="persona-circle">
+              <SituationIcon
+                className={`persona-react-icon ${iconClass}`}
+                aria-hidden="true"
+              />
+            </span>
+            <b>{text}</b>
+          </button>
+        ),
+      )}
     </GenericPersona>
   );
 }
@@ -77,7 +110,6 @@ export function PersonaPeople({
     <GenericPersona
       title="통화하고 싶은 가상의 인물을 선택해주세요."
       active={1}
-      go={go}
       back={() => go("personaUse")}
       next={() => go("callSetupCheck")}
     >
@@ -105,7 +137,6 @@ function GenericPersona({
   children: ReactNode;
   title: string;
   active: number;
-  go: Go;
   back: () => void;
   next: () => void;
 }) {

@@ -1,4 +1,5 @@
-﻿import father from "../assets/figma/raw-image-1.jpeg";
+﻿import { MdCall, MdCallEnd } from "react-icons/md";
+import father from "../assets/figma/raw-image-1.jpeg";
 import { Canvas } from "../components/Canvas";
 import { Icon } from "../components/Icon";
 import type { Go } from "../types";
@@ -19,10 +20,10 @@ export function CallRinging({ go }: { go: Go }) {
       </p>
       <div className="ring-actions">
         <button className="answer" onClick={() => go("call")}>
-          <Icon name="phone" size={32} />
+          <MdCall className="ring-call-icon" aria-hidden="true" />
         </button>
         <button className="decline" onClick={() => go("home")}>
-          <Icon name="call_end" size={32} />
+          <MdCallEnd className="ring-call-icon" aria-hidden="true" />
         </button>
       </div>
     </Canvas>

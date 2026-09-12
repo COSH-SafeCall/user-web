@@ -46,7 +46,7 @@ export function Setting({ go, dialog }: { go: Go; dialog?: boolean }) {
         </section>
       </div>
       <footer>
-        <b>team. Cesh</b>
+        <b>team. COSH</b>
         <button onClick={() => go("settingDialog")}>로그아웃</button>
       </footer>
       {dialog && (

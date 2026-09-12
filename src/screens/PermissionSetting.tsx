@@ -24,8 +24,9 @@ export function PermissionSetting({ go }: { go: Go }) {
       </section>
       <BottomButton
         label="권한 설정하기"
-        onClick={() => go("sosSystem")}
+        onClick={() => go("setting")}
       />
     </Canvas>
   );
 }
+

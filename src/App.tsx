@@ -1,8 +1,4 @@
 ﻿import { useState } from "react";
-import kakaoMock from "./assets/screen-reference/Login - Onboarding-1.png";
-import sosMock from "./assets/screen-reference/Login - Onboarding-7.png";
-import callPermissionMock from "./assets/screen-reference/Login - Onboarding-8.png";
-import { ImageScreen } from "./components/ImageScreen";
 import { screenOrder } from "./screenOrder";
 import { Call } from "./screens/Call";
 import { CallRinging } from "./screens/CallRinging";
@@ -39,12 +35,6 @@ export default function App() {
       <div className="desktop-shell">
         <div className="phone-frame">
           {screen === "login" && <Login go={go} />}
-          {screen === "kakao" && (
-            <ImageScreen
-              src={kakaoMock}
-              onClick={() => go("permissionToast")}
-            />
-          )}
           {screen === "profile" && <Profile go={go} />}
           {screen === "contacts" && <Contacts go={go} />}
           {screen === "contactModal" && <Contacts go={go} modal />}
@@ -53,15 +43,6 @@ export default function App() {
             <PermissionIntro go={go} sos={false} />
           )}
           {screen === "permissionSos" && <PermissionIntro go={go} sos />}
-          {screen === "sosSystem" && (
-            <ImageScreen src={sosMock} onClick={() => go("complete")} />
-          )}
-          {screen === "callPermission" && (
-            <ImageScreen
-              src={callPermissionMock}
-              onClick={() => go("permissionSos")}
-            />
-          )}
           {screen === "permissionToast" && (
             <PermissionIntro go={go} sos={false} kakaoFailure />
           )}

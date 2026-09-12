@@ -1,15 +1,54 @@
-﻿import { Canvas } from "../components/Canvas";
-import { Icon } from "../components/Icon";
-import type { Go, IconName } from "../types";
+﻿import type { IconType } from "react-icons";
+import {
+  MdBluetooth,
+  MdCallEnd,
+  MdDialpad,
+  MdMicOff,
+  MdOutlineVideocam,
+  MdVolumeUp,
+} from "react-icons/md";
+import { PiCassetteTapeFill } from "react-icons/pi";
+import { Canvas } from "../components/Canvas";
+import type { Go } from "../types";
+
+type CallAction = {
+  icon: IconType;
+  iconClass: string;
+  label: string;
+};
 
 export function Call({ go }: { go: Go }) {
-  const actions: [IconName, string][] = [
-    ["sms", "녹음"],
-    ["videocam", "영상통화"],
-    ["bluetooth", "블루투스"],
-    ["speaker", "스피커"],
-    ["mic_off", "내 소리 차단"],
-    ["dialpad", "키패드"],
+  const actions: CallAction[] = [
+    {
+      icon: PiCassetteTapeFill,
+      iconClass: "cassette",
+      label: "녹음",
+    },
+    {
+      icon: MdOutlineVideocam,
+      iconClass: "video",
+      label: "영상통화",
+    },
+    {
+      icon: MdBluetooth,
+      iconClass: "bluetooth",
+      label: "블루투스",
+    },
+    {
+      icon: MdVolumeUp,
+      iconClass: "volume",
+      label: "스피커",
+    },
+    {
+      icon: MdMicOff,
+      iconClass: "mic-off",
+      label: "내 소리 차단",
+    },
+    {
+      icon: MdDialpad,
+      iconClass: "dialpad",
+      label: "키패드",
+    },
   ];
 
   return (
@@ -19,14 +58,17 @@ export function Call({ go }: { go: Go }) {
       <p className="call-hint">미리 녹음된 음성을 재생합니다.</p>
       <button className="alt-call">대체통화</button>
       <section className="call-pad">
-        {actions.map(([icon, label]) => (
+        {actions.map(({ icon: ActionIcon, iconClass, label }) => (
           <button key={label}>
-            <Icon name={icon} size={36} />
+            <ActionIcon
+              className={`call-control-icon ${iconClass}`}
+              aria-hidden="true"
+            />
             <span>{label}</span>
           </button>
         ))}
         <button className="end" onClick={() => go("home")}>
-          <Icon name="call_end" size={38} />
+          <MdCallEnd className="call-end-icon" aria-hidden="true" />
         </button>
       </section>
       <p className="call-bottom">

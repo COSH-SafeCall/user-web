@@ -2,16 +2,13 @@
 
 export const screenOrder: Screen[] = [
   "login",
-  "kakao",
   "permissionToast",
   "profile",
   "contacts",
   "contactModal",
   "terms",
   "permissionBasic",
-  "callPermission",
   "permissionSos",
-  "sosSystem",
   "complete",
   "home",
   "personaUse",
