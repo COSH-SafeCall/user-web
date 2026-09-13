@@ -1,0 +1,68 @@
+﻿@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+
+:root {
+  --font-main: "Pretendard", sans-serif;
+  --font-service-title: "Pretendard", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: var(--font-main);
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  background: #fff;
+}
+
+body {
+  background: #fff;
+  font-family: var(--font-main);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  font-family: var(--font-main);
+}
+
+:where(p, span, b, strong, small, label, h1, h2, h3, h4, h5, h6, button, input, textarea, select) {
+  font-family: var(--font-main);
+}
+
+button {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+img {
+  display: block;
+}
+
+.dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.dimmed {
+  opacity: 0.35;
+}
+
+.modal-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.58);
+}

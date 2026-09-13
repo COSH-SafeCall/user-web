@@ -1,4 +1,6 @@
-﻿import { MdPerson } from "react-icons/md";
+﻿import "../components/styles/Avatar.css";
+import "./styles/Setting.css";
+import { MdPerson } from "react-icons/md";
 import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
 import { Icon } from "../components/Icon";
@@ -75,3 +77,4 @@ function SettingGroup({ rows, go }: SettingGroupProps) {
     </div>
   );
 }
+

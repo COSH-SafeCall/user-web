@@ -1,0 +1,11 @@
+﻿.permission-setting {
+  background: #000;
+}
+
+.permission-setting section {
+  width: 316px;
+  margin: 71px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}

@@ -1,4 +1,6 @@
-﻿import { useState } from "react";
+﻿import "./App.css";
+import { useState } from "react";
+import { BottomDrawer } from "./components/BottomDrawer";
 import { screenOrder } from "./screenOrder";
 import { Call } from "./screens/Call";
 import { CallRinging } from "./screens/CallRinging";
@@ -7,6 +9,7 @@ import { Complete } from "./screens/Complete";
 import { Contacts } from "./screens/Contacts";
 import { HelpScreen } from "./screens/HelpScreen";
 import { Home } from "./screens/Home";
+import { KakaoError } from "./screens/KakaoError";
 import { Login } from "./screens/Login";
 import { PermissionIntro } from "./screens/PermissionIntro";
 import { PermissionSetting } from "./screens/PermissionSetting";
@@ -24,7 +27,6 @@ export default function App() {
   const [personaUse, setPersonaUse] = useState(0);
   const [personaPeople, setPersonaPeople] = useState(0);
   const [soundMode, setSoundMode] = useState("소리");
-  const [homeDrawerOpen, setHomeDrawerOpen] = useState(true);
 
   const go: Go = (nextScreen) => setScreen(nextScreen);
   const next = () =>
@@ -43,9 +45,7 @@ export default function App() {
             <PermissionIntro go={go} sos={false} />
           )}
           {screen === "permissionSos" && <PermissionIntro go={go} sos />}
-          {screen === "permissionToast" && (
-            <PermissionIntro go={go} sos={false} kakaoFailure />
-          )}
+          {screen === "permissionToast" && <KakaoError go={go} />}
           {screen === "complete" && <Complete go={go} />}
           {screen === "personaUse" && (
             <PersonaUse
@@ -63,13 +63,7 @@ export default function App() {
           )}
           {screen === "callSetupCheck" && <CallSetupCheck go={go} />}
           {screen === "voiceLoading" && <VoiceLoading go={go} />}
-          {screen === "home" && (
-            <Home
-              go={go}
-              drawerOpen={homeDrawerOpen}
-              setDrawerOpen={setHomeDrawerOpen}
-            />
-          )}
+          {screen === "home" && <Home go={go} />}
           {screen === "help" && <HelpScreen go={go} />}
           {screen === "helpOpen" && <HelpScreen go={go} open />}
           {screen === "callRinging" && <CallRinging go={go} />}
@@ -87,6 +81,7 @@ export default function App() {
             />
           )}
           {screen === "permissionSetting" && <PermissionSetting go={go} />}
+          <BottomDrawer screen={screen} />
           <button
             className="hidden-next"
             onClick={next}
@@ -97,3 +92,7 @@ export default function App() {
     </div>
   );
 }
+
+
+
+

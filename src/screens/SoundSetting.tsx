@@ -1,4 +1,5 @@
-﻿import { Canvas } from "../components/Canvas";
+﻿import "./styles/SoundSetting.css";
+import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
 import { Icon } from "../components/Icon";
 import type { Go, IconName } from "../types";
@@ -43,3 +44,4 @@ export function SoundSetting({
     </Canvas>
   );
 }
+

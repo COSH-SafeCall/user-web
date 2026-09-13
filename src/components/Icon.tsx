@@ -1,4 +1,5 @@
-﻿import type { IconName } from "../types";
+﻿import "./styles/Icon.css";
+import type { IconName } from "../types";
 
 type IconProps = {
   name: IconName;
@@ -20,3 +21,4 @@ export function Icon({
     </span>
   );
 }
+

@@ -1,0 +1,155 @@
+﻿.home {
+  background: #000;
+}
+
+.home-settings,
+.home-help {
+  position: absolute;
+  top: 33px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #989ec9;
+  color: #000;
+  display: grid;
+  place-items: center;
+  z-index: 8;
+}
+
+.home-settings {
+  left: 30px;
+}
+
+.home-help {
+  right: 30px;
+}
+
+.home-top-icon {
+  color: currentColor;
+  fill: currentColor;
+}
+
+.home-top-icon.settings {
+  width: 30px;
+  height: 30px;
+}
+
+.home-top-icon.help {
+  width: 32px;
+  height: 32px;
+}
+
+.home-copy {
+  position: absolute;
+  top: 183px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 82px), 320px);
+  text-align: center;
+  z-index: 2;
+}
+
+.home-copy h1 {
+  margin: 0;
+  color: #fff;
+  font-size: 20px;
+  line-height: 24px;
+  font-weight: 400;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+.home-copy p {
+  margin: 10px 0 0;
+  color: #ffe100;
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.call-main {
+  position: absolute;
+  top: 312px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #9b4cf6 0%, #696bf2 50%, #44409f 100%);
+  z-index: 2;
+}
+
+.call-main::before {
+  content: "";
+  position: absolute;
+  inset: 13px;
+  border-radius: 50%;
+  background: #000;
+  z-index: 0;
+}
+
+.call-main::after {
+  content: "";
+  position: absolute;
+  inset: 27px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #8f55ef 0%, #696bf2 47%, #44409f 100%);
+  z-index: 1;
+}
+
+.call-main .icon {
+  position: absolute;
+  z-index: 2;
+  color: #fff;
+  font-variation-settings: "FILL" 1, "wght" 600, "GRAD" 0, "opsz" 48;
+}
+
+.call-main .icon:first-child {
+  left: 59px;
+  top: 75px;
+  transform: rotate(-18deg);
+}
+
+.call-main .icon:last-child {
+  right: 58px;
+  top: 62px;
+  font-variation-settings: "FILL" 1, "wght" 700, "GRAD" 0, "opsz" 48;
+}
+
+.call-main-icon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  width: 88px;
+  height: 88px;
+  transform: translate(-52%, -47%);
+  color: #fff;
+  fill: currentColor;
+}
+
+.home-status {
+  position: absolute;
+  top: 611px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 152px), 250px);
+  margin: 0;
+  text-align: center;
+  color: #cacaca;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 400;
+  z-index: 2;
+}
+
+.home-status b {
+  color: #6366f1;
+  font-weight: 400;
+}
+
+.home-status em {
+  color: #a35454;
+  font-style: normal;
+}

@@ -1,4 +1,5 @@
-﻿import { Icon } from "./Icon";
+﻿import "./styles/Header.css";
+import { Icon } from "./Icon";
 
 type HeaderProps = {
   title: string;
@@ -15,3 +16,4 @@ export function Header({ title, back }: HeaderProps) {
     </header>
   );
 }
+

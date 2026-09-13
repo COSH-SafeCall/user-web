@@ -1,0 +1,142 @@
+﻿.contacts {
+  background: #000;
+}
+
+.contact-copy {
+  width: min(calc(100% - 110px), 292px);
+  margin: 59px auto 0;
+}
+
+.contact-copy h1 {
+  margin: 0;
+  font-size: 23px;
+  line-height: 34px;
+  font-weight: 400;
+  letter-spacing: -0.4px;
+}
+
+.contact-copy p {
+  margin: 5px 0 0;
+  color: #fff;
+  font-size: 12px;
+  line-height: 17px;
+  font-weight: 400;
+}
+
+.contact-copy b {
+  display: block;
+  width: min(100%, 276px);
+  margin: 9px auto 0;
+  color: #ffe100;
+  text-align: center;
+  font-size: 12px;
+  line-height: 15px;
+  font-weight: 500;
+}
+
+.contact-area {
+  width: min(calc(100% - 40px), 362px);
+  margin: 36px auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.contact-area.edit {
+  margin-top: 39px;
+}
+
+.contact-card {
+  width: 100%;
+  height: 80px;
+  border-radius: 28px;
+  background: #1e293b;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+}
+
+.contact-card .avatar {
+  position: relative;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contact-card b {
+  display: block;
+  font-size: 16px;
+  line-height: 19px;
+}
+
+.contact-card span {
+  display: block;
+  margin-top: 8px;
+  color: #c9c9c9;
+  font-size: 12px;
+  line-height: 14px;
+}
+
+.plus {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #6366f1;
+  color: #000;
+  display: grid;
+  place-items: center;
+  margin-top: 20px;
+}
+
+.contact-modal {
+  width: 336px;
+  min-height: 410px;
+  border-radius: 12px;
+  background: #202b3d;
+  padding: 26px 28px;
+}
+
+.contact-modal h2 {
+  margin: 0 0 22px;
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.modal-field {
+  display: block;
+  margin-bottom: 20px;
+}
+
+.modal-field span {
+  display: block;
+  margin-bottom: 7px;
+  color: #fff;
+  font-size: 13px;
+}
+
+.modal-field input {
+  width: 100%;
+  height: 45px;
+  border: 0;
+  border-bottom: 1px solid #d9d9d9;
+  outline: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 18px;
+}
+
+.contact-modal > button {
+  width: 100%;
+  height: 48px;
+  border-radius: 14px;
+  background: #6366f1;
+  margin-top: 20px;
+}
+
+@media (max-width: 401px) {
+  .contact-card,
+  .contact-area {
+    width: calc(100vw - 40px);
+  }
+}

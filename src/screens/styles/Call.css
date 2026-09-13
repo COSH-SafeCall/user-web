@@ -1,0 +1,273 @@
+﻿.call-gradient {
+  background: linear-gradient(180deg, #4a4f60 0%, #000 50%, #444365 100%);
+}
+
+.ring-title {
+  position: absolute;
+  top: 161px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 80px), 260px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.ring-title p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 19px;
+  font-weight: 400;
+}
+
+.ring-title h1 {
+  margin: 12px 0 0;
+  font-size: 36px;
+  line-height: 43px;
+  font-weight: 400;
+  letter-spacing: -0.4px;
+}
+
+.ring-title img {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center;
+  margin-top: 18px;
+}
+
+.ring-warning {
+  position: absolute;
+  top: 510px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  margin: 0;
+  text-align: center;
+  color: #fff;
+  font-size: 10px;
+  line-height: 13px;
+  font-weight: 400;
+}
+
+.ring-warning .icon {
+  display: flex;
+  margin: 0 auto 8px;
+  font-size: 18px !important;
+}
+
+.ring-actions {
+  position: absolute;
+  left: 46px;
+  right: 46px;
+  bottom: 69px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.ring-actions button {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: grid;
+  place-items: center;
+}
+
+.ring-actions button::before {
+  content: "";
+  position: absolute;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+}
+
+.ring-actions .answer::before {
+  background: #20e542;
+}
+
+.ring-actions .decline::before {
+  background: #ef4444;
+}
+
+.ring-actions .icon {
+  position: relative;
+  z-index: 1;
+}
+
+.ring-call-icon {
+  position: relative;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  color: #fff;
+}
+
+.call-active {
+  position: relative;
+  display: block;
+  color: #fff;
+}
+
+.call-time {
+  position: absolute;
+  top: 115px;
+  left: 0;
+  right: 0;
+  margin: 0;
+  text-align: center;
+  font-size: 16px;
+  line-height: 19px;
+  font-weight: 400;
+}
+
+.call-active h1 {
+  position: absolute;
+  top: 186px;
+  left: 0;
+  right: 0;
+  margin: 0;
+  text-align: center;
+  font-size: 36px;
+  line-height: 43px;
+  font-weight: 400;
+  letter-spacing: -0.4px;
+}
+
+.call-hint {
+  position: absolute;
+  top: 407px;
+  left: 0;
+  right: 0;
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  line-height: 17px;
+  font-weight: 400;
+}
+
+.alt-call {
+  position: absolute;
+  top: 438px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 98px;
+  height: 31px;
+  border-radius: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.23);
+  color: #fff;
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 700;
+}
+
+.call-pad {
+  position: absolute;
+  top: 482px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 84px), 318px);
+  height: 324px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.34);
+  padding: 56px 34px 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, 63px);
+  align-content: start;
+  column-gap: 26px;
+  row-gap: 19px;
+}
+
+.call-pad button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.call-pad button span {
+  white-space: nowrap;
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 400;
+}
+
+.call-pad .icon {
+  font-size: 36px !important;
+}
+
+.call-control-icon {
+  color: #fff;
+}
+
+.call-control-icon.cassette {
+  width: 36px;
+  height: 36px;
+}
+
+.call-control-icon.video {
+  width: 36px;
+  height: 36px;
+}
+
+.call-control-icon.bluetooth {
+  width: 38px;
+  height: 38px;
+}
+
+.call-control-icon.volume {
+  width: 38px;
+  height: 38px;
+}
+
+.call-control-icon.mic-off {
+  width: 38px;
+  height: 38px;
+}
+
+.call-control-icon.dialpad {
+  width: 36px;
+  height: 36px;
+}
+
+.call-pad .end {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #ef4444;
+  display: grid;
+  place-items: center;
+}
+
+.call-pad .end .icon {
+  font-size: 38px !important;
+}
+
+.call-end-icon {
+  width: 38px;
+  height: 38px;
+  color: #fff;
+}
+
+.call-bottom {
+  position: absolute;
+  top: 814px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 60px), 360px);
+  margin: 0;
+  text-align: center;
+  white-space: nowrap;
+  font-size: 10px;
+  line-height: 15px;
+  font-weight: 700;
+}

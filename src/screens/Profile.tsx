@@ -1,4 +1,5 @@
-﻿import type { ReactNode } from "react";
+﻿import "./styles/Profile.css";
+import type { ReactNode } from "react";
 import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
@@ -62,3 +63,4 @@ function ProfileField({
     </div>
   );
 }
+

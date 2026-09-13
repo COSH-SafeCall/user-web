@@ -1,4 +1,5 @@
-﻿import { BottomButton } from "../components/BottomButton";
+﻿import "./styles/Complete.css";
+import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
 import type { Go } from "../types";
 
@@ -16,3 +17,4 @@ export function Complete({ go }: { go: Go }) {
     </Canvas>
   );
 }
+

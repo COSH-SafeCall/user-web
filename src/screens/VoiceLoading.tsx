@@ -1,4 +1,5 @@
-﻿import { Canvas } from "../components/Canvas";
+﻿import "./styles/VoiceLoading.css";
+import { Canvas } from "../components/Canvas";
 import type { Go } from "../types";
 
 export function VoiceLoading({ go }: { go: Go }) {
@@ -32,3 +33,4 @@ export function VoiceLoading({ go }: { go: Go }) {
     </Canvas>
   );
 }
+

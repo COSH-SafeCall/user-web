@@ -1,4 +1,5 @@
-﻿import { BottomButton } from "../components/BottomButton";
+﻿import "./styles/PermissionSetting.css";
+import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
 import type { Go } from "../types";
@@ -29,4 +30,5 @@ export function PermissionSetting({ go }: { go: Go }) {
     </Canvas>
   );
 }
+
 

@@ -1,4 +1,5 @@
-﻿import { Canvas } from "../components/Canvas";
+﻿import "./styles/HelpScreen.css";
+import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
 import { Icon } from "../components/Icon";
 import type { Go } from "../types";
@@ -34,3 +35,4 @@ export function HelpScreen({ go, open }: { go: Go; open?: boolean }) {
     </Canvas>
   );
 }
+

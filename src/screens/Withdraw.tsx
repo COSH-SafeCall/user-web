@@ -1,4 +1,5 @@
-﻿import { BottomButton } from "../components/BottomButton";
+﻿import "./styles/Withdraw.css";
+import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
 import type { Go } from "../types";
@@ -19,3 +20,4 @@ export function Withdraw({ go }: { go: Go }) {
     </Canvas>
   );
 }
+

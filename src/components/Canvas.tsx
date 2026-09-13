@@ -1,4 +1,5 @@
-﻿import type { CSSProperties, ReactNode } from "react";
+﻿import "./styles/Canvas.css";
+import type { CSSProperties, ReactNode } from "react";
 
 type CanvasProps = {
   children: ReactNode;
@@ -19,3 +20,4 @@ export function Canvas({
     </main>
   );
 }
+

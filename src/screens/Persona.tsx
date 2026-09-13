@@ -1,4 +1,5 @@
-﻿import type { ReactNode } from "react";
+﻿import "./styles/Persona.css";
+import type { ReactNode } from "react";
 import type { IconType } from "react-icons";
 import {
   MdDirectionsCarFilled,
@@ -13,7 +14,6 @@ import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
 import { Icon } from "../components/Icon";
 import type { Go } from "../types";
-import { BottomPeek } from "./shared/BottomPeek";
 
 type SituationChoice = {
   icon: IconType;
@@ -154,7 +154,9 @@ function GenericPersona({
       <h1>{title}</h1>
       <div className="persona-options">{children}</div>
       <BottomButton label="다음" onClick={next} />
-      <BottomPeek />
     </Canvas>
   );
 }
+
+
+

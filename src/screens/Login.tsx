@@ -1,4 +1,5 @@
-﻿import logo from "../assets/Safecall_logo.png";
+﻿import "./styles/Login.css";
+import logo from "../assets/Safecall_logo.png";
 import { Canvas } from "../components/Canvas";
 import { Icon } from "../components/Icon";
 import { useScale } from "../hooks/useScale";
@@ -25,4 +26,5 @@ export function Login({ go }: { go: Go }) {
     </Canvas>
   );
 }
+
 

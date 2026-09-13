@@ -1,4 +1,5 @@
-﻿import { MdOutlineWifiOff, MdVolumeUp } from "react-icons/md";
+﻿import "./styles/CallSetupCheck.css";
+import { MdOutlineWifiOff, MdVolumeUp } from "react-icons/md";
 import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
@@ -35,3 +36,4 @@ export function CallSetupCheck({ go }: { go: Go }) {
     </Canvas>
   );
 }
+

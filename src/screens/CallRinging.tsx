@@ -1,4 +1,5 @@
-﻿import { MdCall, MdCallEnd } from "react-icons/md";
+﻿import "./styles/Call.css";
+import { MdCall, MdCallEnd } from "react-icons/md";
 import father from "../assets/figma/raw-image-1.jpeg";
 import { Canvas } from "../components/Canvas";
 import { Icon } from "../components/Icon";
@@ -29,3 +30,4 @@ export function CallRinging({ go }: { go: Go }) {
     </Canvas>
   );
 }
+

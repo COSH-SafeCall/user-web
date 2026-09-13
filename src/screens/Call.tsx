@@ -1,4 +1,5 @@
-﻿import type { IconType } from "react-icons";
+﻿import "./styles/Call.css";
+import type { IconType } from "react-icons";
 import {
   MdBluetooth,
   MdCallEnd,
@@ -77,3 +78,4 @@ export function Call({ go }: { go: Go }) {
     </Canvas>
   );
 }
+

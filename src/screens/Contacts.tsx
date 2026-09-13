@@ -1,4 +1,6 @@
-﻿import { MdPerson } from "react-icons/md";
+﻿import "../components/styles/Avatar.css";
+import "./styles/Contacts.css";
+import { MdPerson } from "react-icons/md";
 import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
@@ -90,3 +92,4 @@ function ModalField({
     </label>
   );
 }
+

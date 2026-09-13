@@ -1,4 +1,5 @@
-﻿import { BottomButton } from "../components/BottomButton";
+﻿import "./styles/Terms.css";
+import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
 import { useScale } from "../hooks/useScale";
 import type { Go } from "../types";
@@ -34,3 +35,4 @@ export function Terms({ go }: { go: Go }) {
     </Canvas>
   );
 }
+

@@ -1,4 +1,5 @@
-﻿type BottomButtonProps = {
+﻿import "./styles/BottomButton.css";
+type BottomButtonProps = {
   label: string;
   onClick: () => void;
   dark?: boolean;
@@ -20,3 +21,4 @@ export function BottomButton({
     </button>
   );
 }
+
