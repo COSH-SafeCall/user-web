@@ -1,6 +1,6 @@
 ﻿import "../components/styles/Avatar.css";
 import "./styles/Contacts.css";
-import { useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { MdPerson } from "react-icons/md";
 import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
@@ -9,8 +9,17 @@ import { Icon } from "../components/Icon";
 import { useScale } from "../hooks/useScale";
 import type { Go } from "../types";
 
+export type EmergencyContact = {
+  id: number;
+  name: string;
+  relation: string;
+  phone: string;
+};
+
 type ContactsProps = {
   go: Go;
+  contacts: EmergencyContact[];
+  onAddContact: (contact: Omit<EmergencyContact, "id">) => void;
   modal?: boolean;
   edit?: boolean;
 };
@@ -21,7 +30,29 @@ function isValidPhoneNumber(phone: string) {
   return phonePattern.test(phone.trim());
 }
 
-export function Contacts({ go, modal, edit }: ContactsProps) {
+function formatPhoneInput(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+
+  if (digits.length <= 3) {
+    return digits;
+  }
+
+  if (digits.length <= 7) {
+    return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  }
+
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+}
+
+export function Contacts({
+  go,
+  contacts,
+  onAddContact,
+  modal,
+  edit,
+}: ContactsProps) {
+  const canAddContact = contacts.length < 2;
+
   return (
     <Canvas className="contacts" style={useScale()}>
       {edit && <Header title="비상 연락처 수정" back={() => go("setting")} />}
@@ -40,43 +71,57 @@ export function Contacts({ go, modal, edit }: ContactsProps) {
         </div>
       )}
       <section
-        className={`contact-area ${modal ? "under-modal" : ""} ${
-          edit ? "edit" : ""
-        }`}
+        className={`contact-area ${contacts.length === 0 ? "empty" : ""} ${
+          modal ? "under-modal" : ""
+        } ${edit ? "edit" : ""}`}
       >
-        <ContactCard />
-        <button className="plus" onClick={() => go("contactModal")}>
-          <Icon name="add" size={40} />
-        </button>
+        {contacts.map((contact) => (
+          <ContactCard key={contact.id} contact={contact} />
+        ))}
+        {canAddContact && (
+          <FeedbackButton
+            className="plus"
+            ariaLabel="비상 연락처 추가"
+            onClick={() => go("contactModal")}
+          >
+            <Icon name="add" size={40} />
+          </FeedbackButton>
+        )}
       </section>
       {!edit && <BottomButton label="다음" onClick={() => go("terms")} />}
       {modal && (
         <div className="modal-layer">
-          <ContactModal go={go} />
+          <ContactModal go={go} onAddContact={onAddContact} />
         </div>
       )}
     </Canvas>
   );
 }
 
-function ContactCard() {
+function ContactCard({ contact }: { contact: EmergencyContact }) {
   return (
     <div className="contact-card">
       <div className="avatar">
         <MdPerson className="profile-person-icon" aria-hidden="true" />
       </div>
       <div>
-        <b>보호자 1</b>
-        <span>관계</span>
+        <b>{contact.name}</b>
+        <span>{contact.relation}</span>
       </div>
     </div>
   );
 }
 
-function ContactModal({ go }: { go: Go }) {
-  const [name, setName] = useState("보호자 2");
-  const [relation, setRelation] = useState("어머니");
-  const [phone, setPhone] = useState("010-0000-0000");
+function ContactModal({
+  go,
+  onAddContact,
+}: {
+  go: Go;
+  onAddContact: (contact: Omit<EmergencyContact, "id">) => void;
+}) {
+  const [name, setName] = useState("");
+  const [relation, setRelation] = useState("");
+  const [phone, setPhone] = useState("");
   const [nameError, setNameError] = useState(false);
   const [phoneError, setPhoneError] = useState(false);
 
@@ -91,6 +136,11 @@ function ContactModal({ go }: { go: Go }) {
       return;
     }
 
+    onAddContact({
+      name: name.trim(),
+      relation: relation.trim() || "관계",
+      phone,
+    });
     go("contacts");
   };
 
@@ -102,7 +152,7 @@ function ContactModal({ go }: { go: Go }) {
   };
 
   const changePhone = (value: string) => {
-    setPhone(value);
+    setPhone(formatPhoneInput(value));
     if (phoneError) {
       setPhoneError(false);
     }
@@ -133,14 +183,74 @@ function ContactModal({ go }: { go: Go }) {
         error={phoneError ? "전화번호의 형식이 올바르지 않습니다." : undefined}
       />
       <div className="contact-modal-actions">
-        <button type="button" onClick={() => go("contacts")}>
+        <FeedbackButton
+          className="contact-action-button"
+          onClick={() => go("contacts")}
+        >
           취소
-        </button>
-        <button type="button" onClick={addContact}>
+        </FeedbackButton>
+        <FeedbackButton className="contact-action-button" onClick={addContact}>
           추가
-        </button>
+        </FeedbackButton>
       </div>
     </div>
+  );
+}
+
+function FeedbackButton({
+  children,
+  className,
+  ariaLabel,
+  onClick,
+}: {
+  children: ReactNode;
+  className: string;
+  ariaLabel?: string;
+  onClick: () => void;
+}) {
+  const [pressed, setPressed] = useState(false);
+  const feedbackTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimerRef.current !== null) {
+        window.clearTimeout(feedbackTimerRef.current);
+      }
+    };
+  }, []);
+
+  const stopPressFeedback = () => {
+    if (feedbackTimerRef.current === null) {
+      setPressed(false);
+    }
+  };
+
+  const handleClick = () => {
+    if (feedbackTimerRef.current !== null) {
+      return;
+    }
+
+    setPressed(true);
+    feedbackTimerRef.current = window.setTimeout(() => {
+      setPressed(false);
+      feedbackTimerRef.current = null;
+      onClick();
+    }, 110);
+  };
+
+  return (
+    <button
+      className={`${className} ${pressed ? "pressed" : ""}`}
+      type="button"
+      aria-label={ariaLabel}
+      onPointerDown={() => setPressed(true)}
+      onPointerLeave={stopPressFeedback}
+      onPointerCancel={stopPressFeedback}
+      onPointerUp={stopPressFeedback}
+      onClick={handleClick}
+    >
+      {children}
+    </button>
   );
 }
 

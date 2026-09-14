@@ -1,12 +1,12 @@
 ﻿import "./App.css";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { BottomDrawer } from "./components/BottomDrawer";
 import { screenOrder } from "./screenOrder";
 import { Call } from "./screens/Call";
 import { CallRinging } from "./screens/CallRinging";
 import { CallSetupCheck } from "./screens/CallSetupCheck";
 import { Complete } from "./screens/Complete";
-import { Contacts } from "./screens/Contacts";
+import { Contacts, type EmergencyContact } from "./screens/Contacts";
 import { HelpScreen } from "./screens/HelpScreen";
 import { Home } from "./screens/Home";
 import { KakaoError } from "./screens/KakaoError";
@@ -27,10 +27,34 @@ export default function App() {
   const [personaUse, setPersonaUse] = useState(0);
   const [personaPeople, setPersonaPeople] = useState(0);
   const [soundMode, setSoundMode] = useState("소리");
+  const [contacts, setContacts] = useState<EmergencyContact[]>([]);
+  const nextContactIdRef = useRef(1);
 
   const go: Go = (nextScreen) => setScreen(nextScreen);
   const next = () =>
     go(screenOrder[(screenOrder.indexOf(screen) + 1) % screenOrder.length]);
+  const addContact = (contact: Omit<EmergencyContact, "id">) => {
+    if (contacts.length >= 2) {
+      return;
+    }
+
+    const nextContactId = nextContactIdRef.current;
+    nextContactIdRef.current += 1;
+
+    setContacts((current) => {
+      if (current.length >= 2) {
+        return current;
+      }
+
+      return [
+        ...current,
+        {
+          ...contact,
+          id: nextContactId,
+        },
+      ];
+    });
+  };
 
   return (
     <div className="app-root">
@@ -38,8 +62,21 @@ export default function App() {
         <div className="phone-frame">
           {screen === "login" && <Login go={go} />}
           {screen === "profile" && <Profile go={go} />}
-          {screen === "contacts" && <Contacts go={go} />}
-          {screen === "contactModal" && <Contacts go={go} modal />}
+          {screen === "contacts" && (
+            <Contacts
+              go={go}
+              contacts={contacts}
+              onAddContact={addContact}
+            />
+          )}
+          {screen === "contactModal" && (
+            <Contacts
+              go={go}
+              contacts={contacts}
+              onAddContact={addContact}
+              modal
+            />
+          )}
           {screen === "terms" && <Terms go={go} />}
           {screen === "permissionBasic" && (
             <PermissionIntro go={go} sos={false} />
@@ -72,7 +109,14 @@ export default function App() {
           {screen === "settingDialog" && <Setting go={go} dialog />}
           {screen === "withdraw" && <Withdraw go={go} />}
           {screen === "editProfile" && <Profile go={go} edit />}
-          {screen === "editContacts" && <Contacts go={go} edit />}
+          {screen === "editContacts" && (
+            <Contacts
+              go={go}
+              contacts={contacts}
+              onAddContact={addContact}
+              edit
+            />
+          )}
           {screen === "soundSetting" && (
             <SoundSetting
               go={go}
