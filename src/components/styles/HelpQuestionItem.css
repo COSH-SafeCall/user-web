@@ -1,0 +1,25 @@
+.help-question-item {
+  width: 100%;
+  min-height: 50px;
+  border-bottom: 1px solid #455269;
+  display: grid;
+  grid-template-columns: 1fr 24px;
+  align-items: center;
+  text-align: left;
+}
+
+.help-question-item b {
+  color: #6366f1;
+}
+
+.help-question-item span {
+  font-size: 12px;
+}
+
+.help-question-item p {
+  grid-column: 1 / -1;
+  color: #9ca3af;
+  font-size: 10px;
+  line-height: 16px;
+  margin: 14px 0;
+}

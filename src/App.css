@@ -1,0 +1,112 @@
+﻿.app-root {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  color: #fff;
+  background: #fff;
+}
+
+.desktop-shell {
+  width: min(100vw, 402px);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: transparent;
+}
+
+.phone-frame {
+  position: relative;
+  width: min(100vw, 402px);
+  min-height: 100vh;
+  overflow: hidden;
+  background: #000;
+}
+
+.hidden-next {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 14px;
+  height: 100%;
+  opacity: 0;
+  z-index: 50;
+}
+
+@media (max-width: 401px) {
+  html,
+  body,
+  #root {
+    background: #000;
+  }
+
+  .app-root {
+    align-items: stretch;
+    background: #000;
+  }
+
+  .desktop-shell {
+    width: 100vw;
+    min-height: 100vh;
+    background: transparent;
+  }
+
+  .phone-frame {
+    width: 100vw;
+    min-height: 100vh;
+  }
+}
+
+@media (min-width: 403px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    min-height: 100%;
+    background: #fff !important;
+  }
+
+  body {
+    background: #fff !important;
+    overflow-x: hidden;
+  }
+
+  .app-root {
+    width: 100vw;
+    align-items: flex-start;
+    min-height: 100vh;
+    background: #fff !important;
+    overflow-x: hidden;
+    padding: 0;
+  }
+
+  .desktop-shell {
+    --desktop-phone-scale: 0.8955;
+    width: calc(402px * var(--desktop-phone-scale));
+    min-width: calc(402px * var(--desktop-phone-scale));
+    max-width: calc(402px * var(--desktop-phone-scale));
+    height: 100vh;
+    min-height: 100vh;
+    max-height: 100vh;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    overflow: hidden;
+  }
+
+  .phone-frame {
+    width: calc(402px * var(--desktop-phone-scale));
+    min-width: calc(402px * var(--desktop-phone-scale));
+    max-width: calc(402px * var(--desktop-phone-scale));
+    height: 100vh;
+    min-height: 100vh;
+    max-height: 100vh;
+    flex: 0 0 calc(402px * var(--desktop-phone-scale));
+    transform: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}

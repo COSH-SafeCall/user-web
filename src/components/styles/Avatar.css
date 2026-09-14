@@ -1,0 +1,16 @@
+﻿.avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #6366f1;
+  display: grid;
+  place-items: center;
+  margin-right: 20px;
+}
+
+.profile-person-icon {
+  width: 42px;
+  height: 42px;
+  color: #fff;
+  fill: currentColor;
+}

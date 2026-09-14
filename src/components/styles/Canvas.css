@@ -1,0 +1,45 @@
+﻿.canvas {
+  width: 100%;
+  min-height: inherit;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  background: #000;
+  margin: 0 auto;
+}
+
+.image-screen {
+  background: #eee;
+}
+
+.image-button,
+.image-button img {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+}
+
+.image-button img {
+  object-fit: cover;
+}
+
+@media (max-width: 401px) {
+  .canvas {
+    width: 100%;
+    min-height: 100vh;
+    transform: none;
+  }
+}
+
+@media (min-width: 403px) {
+  .canvas {
+    width: 402px;
+    min-width: 402px;
+    max-width: 402px;
+    height: calc(100vh / var(--desktop-phone-scale));
+    min-height: 0;
+    max-height: none;
+    transform: scale(var(--desktop-phone-scale));
+    transform-origin: top left;
+  }
+}

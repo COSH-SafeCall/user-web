@@ -1,0 +1,75 @@
+﻿.profile {
+  background: #000;
+}
+
+.profile-form {
+  width: min(calc(100% - 70px), 332px);
+  margin: 52px auto 0;
+}
+
+.profile-form.edit {
+  margin-top: 43px;
+}
+
+.field-label {
+  margin: 0 0 8px;
+  color: #fff;
+  font-size: 13px;
+  line-height: 19px;
+  font-weight: 700;
+}
+
+.segment {
+  height: 43px;
+  border-radius: 9px;
+  padding: 5px;
+  display: flex;
+  gap: 0;
+  background: #1e293b;
+}
+
+.segment span {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 400;
+}
+
+.segment .selected {
+  background: #6366f1;
+  color: #fff;
+  border-radius: 9px;
+}
+
+.small-modal {
+  position: relative;
+  width: 316px;
+  min-height: 133px;
+  border-radius: 20px;
+  background: #1e293b;
+  padding: 29px 23px 18px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+.small-modal b {
+  font-size: 13px;
+  line-height: 19px;
+}
+
+.small-modal p {
+  margin: 16px 0 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 10px;
+  line-height: 15px;
+}
+
+.small-modal button {
+  position: absolute;
+  right: 24px;
+  bottom: 16px;
+  color: #9ca3ff;
+  font-size: 12px;
+}

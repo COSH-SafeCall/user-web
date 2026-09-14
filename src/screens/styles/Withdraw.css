@@ -1,0 +1,16 @@
+﻿.withdraw {
+  background: #000;
+}
+
+.withdraw > p {
+  width: 356px;
+  margin: 85px auto 0;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+@media (max-width: 401px) {
+  .withdraw > p {
+    width: calc(100vw - 40px);
+  }
+}
