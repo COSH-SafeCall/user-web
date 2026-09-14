@@ -69,3 +69,19 @@
   font-size: 13px;
   line-height: 16px;
 }
+
+.permission-message {
+  width: min(calc(100% - 80px), 322px);
+  margin: 16px auto 0;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+}
+
+.permission-message.error {
+  color: #ff7a1a;
+}
+
+.permission-message.warning {
+  color: #ffe100;
+}

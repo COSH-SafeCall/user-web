@@ -6,6 +6,8 @@ type BottomButtonProps = {
   onClick: () => void;
   dark?: boolean;
   light?: boolean;
+  disabled?: boolean;
+  immediate?: boolean;
 };
 
 export function BottomButton({
@@ -13,6 +15,8 @@ export function BottomButton({
   onClick,
   dark,
   light,
+  disabled,
+  immediate,
 }: BottomButtonProps) {
   const [pressed, setPressed] = useState(false);
   const feedbackTimerRef = useRef<number | null>(null);
@@ -32,11 +36,21 @@ export function BottomButton({
   };
 
   const handleClick = () => {
-    if (feedbackTimerRef.current !== null) {
+    if (disabled || feedbackTimerRef.current !== null) {
       return;
     }
 
     setPressed(true);
+
+    if (immediate) {
+      onClick();
+      feedbackTimerRef.current = window.setTimeout(() => {
+        setPressed(false);
+        feedbackTimerRef.current = null;
+      }, 110);
+      return;
+    }
+
     feedbackTimerRef.current = window.setTimeout(() => {
       setPressed(false);
       feedbackTimerRef.current = null;
@@ -50,6 +64,7 @@ export function BottomButton({
       className={`bottom-button ${dark ? "dark" : ""} ${
         light ? "light" : ""
       } ${pressed ? "pressed" : ""}`}
+      disabled={disabled}
       onPointerDown={() => setPressed(true)}
       onPointerLeave={stopPressFeedback}
       onPointerCancel={stopPressFeedback}

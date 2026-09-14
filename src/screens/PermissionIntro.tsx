@@ -1,9 +1,15 @@
 ﻿import "./styles/PermissionIntro.css";
+import { useState } from "react";
 import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
 import { Icon } from "../components/Icon";
 import { useScale } from "../hooks/useScale";
 import type { Go, IconName } from "../types";
+import {
+  requestLocationPermission,
+  requestMicrophonePermission,
+  type PermissionRequestResult,
+} from "../utils/browserPermissions";
 
 type PermissionIntroProps = {
   go: Go;
@@ -50,7 +56,72 @@ export const permissionCopy = {
   ].join(" "),
 };
 
+function getMicrophoneErrorMessage(result: PermissionRequestResult) {
+  if (result.reason === "unsupported") {
+    return "현재 브라우저에서 마이크 권한 요청을 지원하지 않습니다. 지원되는 브라우저에서 다시 시도해주세요.";
+  }
+
+  if (result.reason === "denied") {
+    return "마이크 권한이 거부되었습니다. 브라우저 사이트 설정에서 마이크 권한을 허용해주세요.";
+  }
+
+  return "마이크 권한을 확인하지 못했습니다. 마이크 연결 상태를 확인한 뒤 다시 시도해주세요.";
+}
+
 export function PermissionIntro({ go, sos }: PermissionIntroProps) {
+  const [requesting, setRequesting] = useState(false);
+  const [canContinueWithoutLocation, setCanContinueWithoutLocation] =
+    useState(false);
+  const [permissionMessage, setPermissionMessage] = useState<{
+    type: "error" | "warning";
+    text: string;
+  } | null>(null);
+
+  const handleNext = async () => {
+    if (sos) {
+      go("complete");
+      return;
+    }
+
+    if (canContinueWithoutLocation) {
+      go("permissionSos");
+      return;
+    }
+
+    if (requesting) {
+      return;
+    }
+
+    setRequesting(true);
+    setPermissionMessage(null);
+
+    const [microphoneResult, locationResult] = await Promise.all([
+      requestMicrophonePermission(),
+      requestLocationPermission(),
+    ]);
+
+    setRequesting(false);
+
+    if (!microphoneResult.granted) {
+      setPermissionMessage({
+        type: "error",
+        text: getMicrophoneErrorMessage(microphoneResult),
+      });
+      return;
+    }
+
+    if (!locationResult.granted) {
+      setCanContinueWithoutLocation(true);
+      setPermissionMessage({
+        type: "warning",
+        text: "위치 권한이 없어 위치 링크 없이 진행합니다. 브라우저 사이트 설정에서 위치 권한을 다시 허용할 수 있습니다.",
+      });
+      return;
+    }
+
+    go("permissionSos");
+  };
+
   return (
     <Canvas className="permission" style={useScale()}>
       <h1>
@@ -88,9 +159,22 @@ export function PermissionIntro({ go, sos }: PermissionIntroProps) {
         실제 119나 112에 신고가 갈 수 있으므로, SafeCall은 112 긴급 호출
         기능을 제어할 수 없으므로 신중한 사용을 권장합니다.
       </p>
+      {permissionMessage && (
+        <p className={`permission-message ${permissionMessage.type}`}>
+          {permissionMessage.text}
+        </p>
+      )}
       <BottomButton
-        label="다음"
-        onClick={() => go(sos ? "complete" : "permissionSos")}
+        label={
+          requesting
+            ? "권한 요청 중..."
+            : canContinueWithoutLocation
+              ? "위치 없이 다음"
+              : "다음"
+        }
+        onClick={handleNext}
+        disabled={requesting}
+        immediate
       />
     </Canvas>
   );
@@ -115,4 +199,3 @@ export function PermissionRow({
     </div>
   );
 }
-

@@ -1,4 +1,4 @@
-﻿.bottom-button {
+.bottom-button {
   position: absolute;
   left: 50%;
   bottom: 20px;
@@ -36,6 +36,11 @@
 .bottom-button.light {
   background: #f4f4f5;
   color: #000;
+}
+
+.bottom-button:disabled {
+  cursor: default;
+  filter: brightness(0.82);
 }
 
 .two-buttons {
