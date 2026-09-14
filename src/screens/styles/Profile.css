@@ -28,7 +28,7 @@
   background: #1e293b;
 }
 
-.segment span {
+.segment button {
   flex: 1;
   display: grid;
   place-items: center;

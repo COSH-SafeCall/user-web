@@ -10,9 +10,14 @@
   font-weight: 700;
 }
 
-.signup-form-field strong {
+.signup-form-field input {
   display: block;
+  width: 100%;
   margin-left: 4px;
+  border: 0;
+  outline: 0;
+  padding: 0;
+  background: transparent;
   color: rgba(255, 255, 255, 0.46);
   font-size: 20px;
   line-height: 28px;
