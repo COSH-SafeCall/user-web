@@ -1,13 +1,23 @@
 ﻿import "./styles/VoiceLoading.css";
+import { useEffect } from "react";
 import { Canvas } from "../components/Canvas";
 import type { Go } from "../types";
 
+const VOICE_LOADING_AUTO_ADVANCE_MS = 3000;
+
 export function VoiceLoading({ go }: { go: Go }) {
+  useEffect(() => {
+    const timerId = window.setTimeout(() => {
+      go("callRinging");
+    }, VOICE_LOADING_AUTO_ADVANCE_MS);
+
+    return () => {
+      window.clearTimeout(timerId);
+    };
+  }, [go]);
+
   return (
-    <Canvas
-      className="voice-loading"
-      onClick={() => go("callRinging")}
-    >
+    <Canvas className="voice-loading">
       <h1>가상 통화를 준비하고 있습니다...</h1>
       <div className="voice-bars">
         <span />
@@ -33,4 +43,3 @@ export function VoiceLoading({ go }: { go: Go }) {
     </Canvas>
   );
 }
-

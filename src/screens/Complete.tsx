@@ -9,11 +9,7 @@ export function Complete({ go }: { go: Go }) {
       <section>
         <h1>설정이 모두 완료되었습니다.</h1>
       </section>
-      <div className="two-buttons">
-        <BottomButton dark label="건너뛰기" onClick={() => go("home")} />
-        <BottomButton light label="확인" onClick={() => go("home")} />
-      </div>
+      <BottomButton label="다음" onClick={() => go("home")} />
     </Canvas>
   );
 }
-

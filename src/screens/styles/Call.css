@@ -1,4 +1,4 @@
-﻿.call-gradient {
+﻿.canvas.call-gradient {
   background: linear-gradient(180deg, #4a4f60 0%, #000 50%, #444365 100%);
 }
 
@@ -271,3 +271,4 @@
   line-height: 15px;
   font-weight: 700;
 }
+
