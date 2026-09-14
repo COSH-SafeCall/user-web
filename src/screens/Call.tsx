@@ -1,5 +1,5 @@
-﻿import "./styles/Call.css";
-import { useState } from "react";
+import "./styles/Call.css";
+import { useEffect, useRef, useState } from "react";
 import type { IconType } from "react-icons";
 import {
   MdBluetooth,
@@ -10,6 +10,7 @@ import {
   MdVolumeUp,
 } from "react-icons/md";
 import { PiCassetteTapeFill } from "react-icons/pi";
+import alternativeCallAudio from "../assets/audio/alternative-call.wav";
 import { Canvas } from "../components/Canvas";
 import { RequirementErrorMessage } from "../components/RequirementErrorMessage";
 import type { Go } from "../types";
@@ -20,8 +21,22 @@ type CallAction = {
   label: string;
 };
 
+function formatCallTime(elapsedSeconds: number) {
+  const minutes = Math.floor(elapsedSeconds / 60)
+    .toString()
+    .padStart(2, "0");
+  const seconds = (elapsedSeconds % 60).toString().padStart(2, "0");
+
+  return `${minutes}:${seconds}`;
+}
+
 export function Call({ go }: { go: Go }) {
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [isAlternativeCallActive, setIsAlternativeCallActive] = useState(false);
+  const [isCallEnding, setIsCallEnding] = useState(false);
   const [showUnavailableError, setShowUnavailableError] = useState(false);
+  const alternativeAudioRef = useRef<HTMLAudioElement | null>(null);
+  const endCallTimeoutRef = useRef<number | null>(null);
   const actions: CallAction[] = [
     {
       icon: PiCassetteTapeFill,
@@ -55,15 +70,96 @@ export function Call({ go }: { go: Go }) {
     },
   ];
 
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setElapsedSeconds((current) => current + 1);
+    }, 1000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  useEffect(() => {
+    const alternativeAudio = alternativeAudioRef.current;
+
+    return () => {
+      if (endCallTimeoutRef.current) {
+        window.clearTimeout(endCallTimeoutRef.current);
+      }
+
+      alternativeAudio?.pause();
+    };
+  }, []);
+
+  const handleAlternativeCallClick = () => {
+    if (isCallEnding) {
+      return;
+    }
+
+    const alternativeAudio = alternativeAudioRef.current;
+
+    setIsAlternativeCallActive(true);
+
+    if (!alternativeAudio) {
+      return;
+    }
+
+    alternativeAudio.currentTime = 0;
+    alternativeAudio.play().catch(() => {
+      setIsAlternativeCallActive(false);
+    });
+  };
+
+  const handleEndCallClick = () => {
+    if (isCallEnding) {
+      return;
+    }
+
+    alternativeAudioRef.current?.pause();
+    setShowUnavailableError(false);
+    setIsCallEnding(true);
+
+    endCallTimeoutRef.current = window.setTimeout(() => {
+      go("home");
+    }, 420);
+  };
+
   return (
-    <Canvas className="call-gradient call-active">
-      <p className="call-time">00:00</p>
+    <Canvas
+      className={`call-gradient call-active call-connected${
+        isCallEnding ? " call-ending" : ""
+      }`}
+    >
+      <p className="call-time">{formatCallTime(elapsedSeconds)}</p>
       <h1>아빠</h1>
       <p className="call-hint">미리 녹음된 음성을 재생합니다.</p>
-      <button className="alt-call">대체통화</button>
+      {isAlternativeCallActive ? (
+        <p className="alt-call-status" aria-live="polite">
+          대체 통화 중입니다
+        </p>
+      ) : (
+        <button
+          className="alt-call"
+          disabled={isCallEnding}
+          onClick={handleAlternativeCallClick}
+        >
+          대체통화
+        </button>
+      )}
+      <audio
+        ref={alternativeAudioRef}
+        src={alternativeCallAudio}
+        loop
+        preload="auto"
+      />
       <section className="call-pad">
         {actions.map(({ icon: ActionIcon, iconClass, label }) => (
-          <button key={label} onClick={() => setShowUnavailableError(true)}>
+          <button
+            key={label}
+            disabled={isCallEnding}
+            onClick={() => setShowUnavailableError(true)}
+          >
             <ActionIcon
               className={`call-control-icon ${iconClass}`}
               aria-hidden="true"
@@ -71,7 +167,11 @@ export function Call({ go }: { go: Go }) {
             <span>{label}</span>
           </button>
         ))}
-        <button className="end" onClick={() => go("home")}>
+        <button
+          className="end"
+          disabled={isCallEnding}
+          onClick={handleEndCallClick}
+        >
           <MdCallEnd className="call-end-icon" aria-hidden="true" />
         </button>
       </section>

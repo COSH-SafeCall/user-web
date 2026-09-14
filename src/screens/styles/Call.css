@@ -3,13 +3,28 @@
 }
 
 .canvas.call-ringing {
-  animation: call-ringing-enter 0.26s cubic-bezier(0.22, 0.25, 0, 1) both;
+  overflow: hidden;
+  animation: call-ringing-enter 0.32s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+.canvas.call-ringing.answering {
+  pointer-events: none;
+  animation: call-answer-dim 0.48s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+.canvas.call-ringing.answering::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.38);
+  animation: call-answer-overlay 0.48s cubic-bezier(0.22, 0.25, 0, 1) both;
 }
 
 @keyframes call-ringing-enter {
   0% {
     opacity: 0;
-    filter: brightness(0.9);
+    filter: brightness(0.86);
   }
 
   100% {
@@ -18,16 +33,38 @@
   }
 }
 
+@keyframes call-answer-dim {
+  0% {
+    filter: brightness(1);
+  }
+
+  100% {
+    filter: brightness(0.78);
+  }
+}
+
+@keyframes call-answer-overlay {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
 .ring-title {
   position: absolute;
   top: 161px;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 2;
   width: min(calc(100% - 80px), 260px);
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  animation: ring-title-enter 0.38s cubic-bezier(0.22, 0.25, 0, 1) 0.04s both;
 }
 
 .ring-title p {
@@ -59,6 +96,7 @@
   top: 510px;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 2;
   width: 120px;
   margin: 0;
   text-align: center;
@@ -66,6 +104,7 @@
   font-size: 10px;
   line-height: 13px;
   font-weight: 400;
+  animation: ring-warning-enter 0.34s cubic-bezier(0.22, 0.25, 0, 1) 0.1s both;
 }
 
 .ring-warning .icon {
@@ -79,8 +118,10 @@
   left: 46px;
   right: 46px;
   bottom: 69px;
+  z-index: 2;
   display: flex;
   justify-content: space-between;
+  animation: ring-actions-enter 0.38s cubic-bezier(0.22, 0.25, 0, 1) 0.14s both;
 }
 
 .ring-actions button {
@@ -136,6 +177,124 @@
   color: #fff;
 }
 
+.call-ringing.answering .ring-title {
+  animation: ring-title-answer-exit 0.42s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+.call-ringing.answering .ring-warning {
+  animation: ring-warning-answer-exit 0.28s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+.call-ringing.answering .ring-actions {
+  animation: none;
+}
+
+.call-ringing.answering .ring-actions button::after {
+  animation: none;
+  opacity: 0;
+}
+
+.call-ringing.answering .ring-actions .answer {
+  z-index: 3;
+  animation: ring-answer-button-accept 0.48s cubic-bezier(0.2, 0.72, 0.2, 1) both;
+}
+
+.call-ringing.answering .ring-actions .decline {
+  animation: ring-decline-button-exit 0.22s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+@keyframes ring-title-enter {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(12px) scale(0.985);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes ring-warning-enter {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes ring-actions-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ring-title-answer-exit {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-18px) scale(1.025);
+  }
+}
+
+@keyframes ring-warning-answer-exit {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+}
+
+@keyframes ring-answer-button-accept {
+  0% {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+    filter: brightness(1);
+  }
+
+  30% {
+    opacity: 1;
+    transform: translateX(14px) translateY(-2px) scale(0.9);
+    filter: brightness(1.1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(138px) translateY(34px) scale(0.58);
+    filter: brightness(0.72);
+  }
+}
+
+@keyframes ring-decline-button-exit {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.88);
+  }
+}
+
 @keyframes ring-button-ripple {
   0% {
     transform: scale(0.9);
@@ -149,21 +308,56 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .canvas.call-ringing,
-  .ring-actions button::after {
-    animation: none;
-  }
-
-  .ring-actions button::after {
-    opacity: 0;
-  }
-}
 
 .call-active {
   position: relative;
   display: block;
   color: #fff;
+  overflow: hidden;
+}
+
+.canvas.call-connected {
+  animation: call-connected-enter 0.3s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+.call-connected .call-time,
+.call-connected h1,
+.call-connected .call-hint,
+.call-connected .alt-call,
+.call-connected .alt-call-status,
+.call-connected .call-pad,
+.call-connected .call-bottom {
+  animation: call-connected-content-enter 0.34s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+.call-connected .call-pad {
+  animation-delay: 0.04s;
+}
+
+.call-connected .call-bottom {
+  animation-delay: 0.08s;
+}
+
+@keyframes call-connected-enter {
+  0% {
+    opacity: 0;
+    filter: brightness(0.9);
+  }
+
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+@keyframes call-connected-content-enter {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 .call-time {
@@ -217,6 +411,137 @@
   font-size: 13px;
   line-height: 16px;
   font-weight: 700;
+}
+
+.alt-call-status {
+  position: absolute;
+  top: 444px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180px;
+  margin: 0;
+  text-align: center;
+  color: #fff;
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 700;
+  animation: alt-call-status-pulse 1.35s ease-in-out infinite;
+}
+
+@keyframes alt-call-status-pulse {
+  0%,
+  100% {
+    opacity: 0.32;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.canvas.call-ending {
+  pointer-events: none;
+}
+
+.canvas.call-ending::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.46);
+  animation: call-ending-dim 0.42s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+.call-ending .call-time,
+.call-ending h1,
+.call-ending .call-hint,
+.call-ending .alt-call,
+.call-ending .alt-call-status,
+.call-ending .call-bottom {
+  animation: call-ending-content-exit 0.28s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+.call-ending .call-pad {
+  animation: call-ending-pad-exit 0.42s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+.call-ending .call-pad button:not(.end) {
+  animation: call-ending-control-exit 0.22s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+.call-ending .call-pad .end {
+  animation: call-ending-end-button 0.42s cubic-bezier(0.2, 0.7, 0.25, 1) both;
+}
+
+@keyframes call-ending-dim {
+  0% {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+
+  100% {
+    opacity: 1;
+    backdrop-filter: blur(4px);
+  }
+}
+
+@keyframes call-ending-content-exit {
+  0% {
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 0;
+    filter: blur(3px);
+  }
+}
+
+@keyframes call-ending-control-exit {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+}
+
+@keyframes call-ending-pad-exit {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(112px) scale(0.985);
+  }
+}
+
+@keyframes call-ending-end-button {
+  0% {
+    transform: translateX(-50%) scale(1);
+    filter: brightness(1);
+  }
+
+  36% {
+    transform: translateX(-50%) scale(0.88);
+    filter: brightness(0.86);
+  }
+
+  100% {
+    transform: translateX(-50%) translateY(38px) scale(0.72);
+    filter: brightness(0.7);
+  }
+}
+
+.call-connected .alt-call-status {
+  animation:
+    call-connected-content-enter 0.34s cubic-bezier(0.22, 0.25, 0, 1) both,
+    alt-call-status-pulse 1.35s ease-in-out 0.34s infinite;
 }
 
 .call-pad {
@@ -327,3 +652,42 @@
   font-weight: 700;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .canvas.call-ringing,
+  .canvas.call-ringing.answering,
+  .canvas.call-ringing.answering::after,
+  .ring-title,
+  .ring-warning,
+  .ring-actions,
+  .call-ringing.answering .ring-title,
+  .call-ringing.answering .ring-warning,
+  .call-ringing.answering .ring-actions .answer,
+  .call-ringing.answering .ring-actions .decline,
+  .canvas.call-connected,
+  .canvas.call-ending,
+  .canvas.call-ending::after,
+  .call-connected .call-time,
+  .call-connected h1,
+  .call-connected .call-hint,
+  .call-connected .alt-call,
+  .call-connected .alt-call-status,
+  .call-connected .call-pad,
+  .call-connected .call-bottom,
+  .call-ending .call-time,
+  .call-ending h1,
+  .call-ending .call-hint,
+  .call-ending .alt-call,
+  .call-ending .alt-call-status,
+  .call-ending .call-bottom,
+  .call-ending .call-pad,
+  .call-ending .call-pad button:not(.end),
+  .call-ending .call-pad .end,
+  .alt-call-status,
+  .ring-actions button::after {
+    animation: none;
+  }
+
+  .ring-actions button::after {
+    opacity: 0;
+  }
+}
