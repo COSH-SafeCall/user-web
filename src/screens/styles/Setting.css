@@ -49,28 +49,6 @@
   gap: 10px;
 }
 
-.setting-group {
-  border-radius: 13px;
-  background: #202b3d;
-  padding: 10px 20px;
-}
-
-.setting-group:nth-child(n + 3) {
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-
-.setting-group button {
-  width: 100%;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: #fff;
-  font-size: 13px;
-  line-height: 16px;
-  font-weight: 400;
-}
 
 .setting footer {
   position: absolute;
@@ -139,3 +117,4 @@
 .logout-modal button:last-child {
   background: #6366f1;
 }
+

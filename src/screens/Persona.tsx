@@ -13,12 +13,20 @@ import friend from "../assets/figma/raw-image-5.jpeg";
 import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
 import { Icon } from "../components/Icon";
+import { PersonaPersonOption } from "../components/PersonaPersonOption";
+import { PersonaSituationOption } from "../components/PersonaSituationOption";
 import type { Go } from "../types";
 
 type SituationChoice = {
   icon: IconType;
   iconClass: string;
   text: string;
+};
+
+type PersonChoice = {
+  image: string;
+  imageClass: string;
+  label: string;
 };
 
 const situationChoices: SituationChoice[] = [
@@ -44,10 +52,10 @@ const situationChoices: SituationChoice[] = [
   },
 ];
 
-const people = [
-  [father, "아빠"],
-  [mother, "엄마"],
-  [friend, "친구"],
+const people: PersonChoice[] = [
+  { image: father, imageClass: "father", label: "아빠" },
+  { image: mother, imageClass: "mother", label: "엄마" },
+  { image: friend, imageClass: "friend", label: "친구" },
 ];
 
 function Pager({ active }: { active: number }) {
@@ -76,23 +84,16 @@ export function PersonaUse({
       back={() => go("home")}
       next={() => go("personaPeople")}
     >
-      {situationChoices.map(
-        ({ icon: SituationIcon, iconClass, text }, index) => (
-          <button
-            className={selected === index ? "selected" : ""}
-            key={text}
-            onClick={() => setSelected(index)}
-          >
-            <span className="persona-circle">
-              <SituationIcon
-                className={`persona-react-icon ${iconClass}`}
-                aria-hidden="true"
-              />
-            </span>
-            <b>{text}</b>
-          </button>
-        ),
-      )}
+      {situationChoices.map(({ icon, iconClass, text }, index) => (
+        <PersonaSituationOption
+          key={text}
+          icon={icon}
+          iconClass={iconClass}
+          label={text}
+          selected={selected === index}
+          onClick={() => setSelected(index)}
+        />
+      ))}
     </GenericPersona>
   );
 }
@@ -113,15 +114,15 @@ export function PersonaPeople({
       back={() => go("personaUse")}
       next={() => go("callSetupCheck")}
     >
-      {people.map(([img, label], index) => (
-        <button
-          className={selected === index ? "selected" : ""}
+      {people.map(({ image, imageClass, label }, index) => (
+        <PersonaPersonOption
           key={label}
+          image={image}
+          imageClass={imageClass}
+          label={label}
+          selected={selected === index}
           onClick={() => setSelected(index)}
-        >
-          <img className="persona-photo" src={img} alt={label} />
-          <b>{label}</b>
-        </button>
+        />
       ))}
     </GenericPersona>
   );
@@ -157,6 +158,4 @@ function GenericPersona({
     </Canvas>
   );
 }
-
-
 

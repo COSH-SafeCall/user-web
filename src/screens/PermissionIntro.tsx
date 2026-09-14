@@ -23,6 +23,14 @@ export const permissionCopy = {
     "마이크 권한이 필요합니다.",
   ].join(" "),
   micWarning: "마이크 권한을 허용하지 않을 시 서비스 이용이 불가합니다.",
+  micFeatureBody: [
+    "가상 통화 중 내 음성이 입력될 수 있도록",
+    "브라우저 상단바에서 마이크 기능이 켜져 있는지 확인해주세요.",
+  ].join(" "),
+  micFeatureWarning: [
+    "상단바에서 마이크 기능이 꺼져 있으면",
+    "AI 안심 통화를 사용할 수 없습니다.",
+  ].join(" "),
   locationBody: [
     "긴급 문자에 사용자의 현재 위치 안내 링크를 함께",
     "제공하기 위해 위치 권한이 필요합니다.",
@@ -54,8 +62,10 @@ export function PermissionIntro({ go, sos }: PermissionIntroProps) {
         <PermissionRow
           icon="mic"
           title="마이크"
-          body={permissionCopy.micBody}
-          warning={permissionCopy.micWarning}
+          body={sos ? permissionCopy.micFeatureBody : permissionCopy.micBody}
+          warning={
+            sos ? permissionCopy.micFeatureWarning : permissionCopy.micWarning
+          }
         />
         {!sos && (
           <PermissionRow

@@ -1,8 +1,8 @@
 ﻿import "./styles/Profile.css";
-import type { ReactNode } from "react";
 import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
+import { SignupFormField } from "../components/SignupFormField";
 import { useScale } from "../hooks/useScale";
 import type { Go } from "../types";
 
@@ -13,15 +13,15 @@ export function Profile({ go, edit }: { go: Go; edit?: boolean }) {
         <Header title="사용자 정보 수정" back={() => go("setting")} />
       )}
       <div className={`profile-form ${edit ? "edit" : ""}`}>
-        <ProfileField
+        <SignupFormField
           label="이름"
           value="김이름"
-          help="긴급 문자에서 보호자가 사용자를 식별할 수 있도록 안내되는 데 사용됩니다."
+          description="긴급 문자에서 보호자가 사용자를 식별할 수 있도록 안내되는 데 사용됩니다."
         />
-        <ProfileField
+        <SignupFormField
           label="전화번호"
           value="010-0000-0000"
-          help={
+          description={
             <>
               긴급 문자에서 보호자가 사용자를 식별할 수 있도록 안내되는 데
               사용됩니다.
@@ -30,7 +30,7 @@ export function Profile({ go, edit }: { go: Go; edit?: boolean }) {
             </>
           }
         />
-        <ProfileField label="생년월일" value="2026.09.06" />
+        <SignupFormField label="생년월일" value="2026.09.06" />
         <p className="field-label">성별</p>
         <div className="segment">
           <span>남자</span>
@@ -44,23 +44,3 @@ export function Profile({ go, edit }: { go: Go; edit?: boolean }) {
     </Canvas>
   );
 }
-
-function ProfileField({
-  label,
-  value,
-  help,
-}: {
-  label: string;
-  value: string;
-  help?: ReactNode;
-}) {
-  return (
-    <div className="profile-field">
-      <p className="field-label">{label}</p>
-      <strong>{value}</strong>
-      <div className="line" />
-      {help && <small>{help}</small>}
-    </div>
-  );
-}
-

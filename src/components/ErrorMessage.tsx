@@ -1,7 +1,9 @@
 ﻿import "./styles/ErrorMessage.css";
+import type { ReactNode } from "react";
+
 type ErrorMessageProps = {
   title: string;
-  description: string;
+  description: ReactNode;
   confirmLabel?: string;
   onConfirm: () => void;
 };
@@ -22,4 +24,3 @@ export function ErrorMessage({
     </div>
   );
 }
-

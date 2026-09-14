@@ -153,3 +153,16 @@
   color: #a35454;
   font-style: normal;
 }
+
+.home-status-link {
+  display: inline;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
+  vertical-align: baseline;
+}
+
+.home-status-link.unavailable {
+  color: #a35454;
+}

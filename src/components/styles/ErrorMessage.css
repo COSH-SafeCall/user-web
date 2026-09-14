@@ -2,6 +2,7 @@
   position: absolute;
   top: 346px;
   left: 50%;
+  z-index: 30;
   transform: translateX(-50%);
   width: 296px;
   min-height: 126px;
@@ -37,3 +38,4 @@
   line-height: 18px;
   font-weight: 500;
 }
+

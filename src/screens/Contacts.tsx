@@ -1,5 +1,6 @@
 ﻿import "../components/styles/Avatar.css";
 import "./styles/Contacts.css";
+import { useState } from "react";
 import { MdPerson } from "react-icons/md";
 import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
@@ -13,6 +14,12 @@ type ContactsProps = {
   modal?: boolean;
   edit?: boolean;
 };
+
+const phonePattern = /^010-\d{4}-\d{4}$/;
+
+function isValidPhoneNumber(phone: string) {
+  return phonePattern.test(phone.trim());
+}
 
 export function Contacts({ go, modal, edit }: ContactsProps) {
   return (
@@ -67,13 +74,72 @@ function ContactCard() {
 }
 
 function ContactModal({ go }: { go: Go }) {
+  const [name, setName] = useState("보호자 2");
+  const [relation, setRelation] = useState("어머니");
+  const [phone, setPhone] = useState("010-0000-0000");
+  const [nameError, setNameError] = useState(false);
+  const [phoneError, setPhoneError] = useState(false);
+
+  const addContact = () => {
+    const hasNameError = name.trim().length === 0;
+    const hasPhoneError = !isValidPhoneNumber(phone);
+
+    setNameError(hasNameError);
+    setPhoneError(hasPhoneError);
+
+    if (hasNameError || hasPhoneError) {
+      return;
+    }
+
+    go("contacts");
+  };
+
+  const changeName = (value: string) => {
+    setName(value);
+    if (nameError) {
+      setNameError(false);
+    }
+  };
+
+  const changePhone = (value: string) => {
+    setPhone(value);
+    if (phoneError) {
+      setPhoneError(false);
+    }
+  };
+
   return (
     <div className="contact-modal">
-      <h2>연락처 추가</h2>
-      <ModalField label="이름" value="홍길동" />
-      <ModalField label="관계" value="가족" />
-      <ModalField label="전화번호" value="010-0000-0000" />
-      <button onClick={() => go("contacts")}>추가</button>
+      <button
+        className="contact-modal-menu"
+        aria-label="연락처 추가 옵션"
+        type="button"
+      >
+        <span />
+        <span />
+        <span />
+      </button>
+      <ModalField
+        label="이름"
+        value={name}
+        onChange={changeName}
+        error={nameError ? "이름을 빈칸으로 둘 수 없습니다." : undefined}
+      />
+      <ModalField label="관계" value={relation} onChange={setRelation} />
+      <ModalField
+        label="전화번호"
+        value={phone}
+        onChange={changePhone}
+        error={phoneError ? "전화번호의 형식이 올바르지 않습니다." : undefined}
+      />
+      <div className="contact-modal-actions">
+        <button type="button" onClick={() => go("contacts")}>
+          취소
+        </button>
+        <button type="button" onClick={addContact}>
+          추가
+        </button>
+      </div>
     </div>
   );
 }
@@ -81,15 +147,19 @@ function ContactModal({ go }: { go: Go }) {
 function ModalField({
   label,
   value,
+  onChange,
+  error,
 }: {
   label: string;
   value: string;
+  onChange: (value: string) => void;
+  error?: string;
 }) {
   return (
-    <label className="modal-field">
+    <label className={`modal-field ${error ? "error" : ""}`}>
       <span>{label}</span>
-      <input defaultValue={value} />
+      <input value={value} onChange={(event) => onChange(event.target.value)} />
+      {error && <small>{error}</small>}
     </label>
   );
 }
-

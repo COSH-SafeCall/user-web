@@ -6,29 +6,3 @@
   width: 344px;
   margin: 34px auto 0;
 }
-
-.help-list button {
-  width: 100%;
-  min-height: 50px;
-  border-bottom: 1px solid #455269;
-  display: grid;
-  grid-template-columns: 1fr 24px;
-  align-items: center;
-  text-align: left;
-}
-
-.help-list b {
-  color: #6366f1;
-}
-
-.help-list span {
-  font-size: 12px;
-}
-
-.help-list p {
-  grid-column: 1 / -1;
-  color: #9ca3af;
-  font-size: 10px;
-  line-height: 16px;
-  margin: 14px 0;
-}

@@ -1,4 +1,5 @@
 ﻿import "./styles/Call.css";
+import { useState } from "react";
 import type { IconType } from "react-icons";
 import {
   MdBluetooth,
@@ -10,6 +11,7 @@ import {
 } from "react-icons/md";
 import { PiCassetteTapeFill } from "react-icons/pi";
 import { Canvas } from "../components/Canvas";
+import { RequirementErrorMessage } from "../components/RequirementErrorMessage";
 import type { Go } from "../types";
 
 type CallAction = {
@@ -19,6 +21,7 @@ type CallAction = {
 };
 
 export function Call({ go }: { go: Go }) {
+  const [showUnavailableError, setShowUnavailableError] = useState(false);
   const actions: CallAction[] = [
     {
       icon: PiCassetteTapeFill,
@@ -60,7 +63,7 @@ export function Call({ go }: { go: Go }) {
       <button className="alt-call">대체통화</button>
       <section className="call-pad">
         {actions.map(({ icon: ActionIcon, iconClass, label }) => (
-          <button key={label}>
+          <button key={label} onClick={() => setShowUnavailableError(true)}>
             <ActionIcon
               className={`call-control-icon ${iconClass}`}
               aria-hidden="true"
@@ -75,7 +78,14 @@ export function Call({ go }: { go: Go }) {
       <p className="call-bottom">
         통화 종료를 제외한 나머지 기능은 실제 제공되는 기능이 아닙니다.
       </p>
+      {showUnavailableError && (
+        <div className="modal-layer">
+          <RequirementErrorMessage
+            type="unavailableCallControl"
+            onConfirm={() => setShowUnavailableError(false)}
+          />
+        </div>
+      )}
     </Canvas>
   );
 }
-

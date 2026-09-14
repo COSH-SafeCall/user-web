@@ -8,6 +8,9 @@ type HomeProps = {
 };
 
 export function Home({ go }: HomeProps) {
+  const canUseEmergencyMessage = false;
+  const canShareLocation = false;
+
   return (
     <Canvas className="home">
       <button className="home-settings" onClick={() => go("setting")}>
@@ -24,10 +27,34 @@ export function Home({ go }: HomeProps) {
         <MdAddIcCall className="call-main-icon" aria-hidden="true" />
       </button>
       <p className="home-status">
-        긴급 메시지 기능이 <b>사용 가능</b>합니다.<br />
-        긴급 메시지 위치 전송이 <em>사용 불가</em>합니다.
+        긴급 메시지 기능이{" "}
+        {canUseEmergencyMessage ? (
+          <b>사용 가능</b>
+        ) : (
+          <button
+            className="home-status-link unavailable"
+            onClick={() => go("editContacts")}
+            aria-label="비상 연락처 등록 화면으로 이동"
+          >
+            사용 불가능
+          </button>
+        )}
+        합니다.
+        <br />
+        위치 공유가{" "}
+        {canShareLocation ? (
+          <b>사용 가능</b>
+        ) : (
+          <button
+            className="home-status-link unavailable"
+            onClick={() => go("permissionSetting")}
+            aria-label="위치 권한 설정 화면으로 이동"
+          >
+            사용 불가능
+          </button>
+        )}
+        합니다.
       </p>
     </Canvas>
   );
 }
-

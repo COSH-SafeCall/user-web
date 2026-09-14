@@ -6,6 +6,7 @@
 .terms h1 {
   width: min(calc(100% - 74px), 328px);
   margin: 0 auto;
+  text-align: center;
   font-size: 23px;
   line-height: 34px;
   font-weight: 400;
@@ -48,6 +49,12 @@
   font-weight: 400;
 }
 
+.agree input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .agree span {
   width: 20px;
   height: 20px;
@@ -55,4 +62,21 @@
   border: 2px solid #6366f1;
   border-radius: 4px;
   background: #fff;
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+
+.agree input:checked + span {
+  background: #6366f1;
+}
+
+.agree span svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0;
+}
+
+.agree input:checked + span svg {
+  opacity: 1;
 }

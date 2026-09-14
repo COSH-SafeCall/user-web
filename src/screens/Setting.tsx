@@ -3,15 +3,37 @@ import "./styles/Setting.css";
 import { MdPerson } from "react-icons/md";
 import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
-import { Icon } from "../components/Icon";
+import { SettingBlock } from "../components/SettingBlock";
 import type { Go, Screen } from "../types";
 
-type SettingGroupProps = {
-  rows: [string, Screen][];
-  go: Go;
+const settingBlockNames = [
+  [
+    "사용자 정보 수정",
+    "비상 연락처 수정",
+    "가상 통화 수신 벨소리 설정",
+    "위치 권한 허용 여부 변경",
+    "시험 긴급 메시지 보내기",
+  ],
+  ["도움말", "문의하기"],
+  ["개인정보 정책"],
+  ["탈퇴하기"],
+];
+
+const settingRoutes: Record<string, Screen> = {
+  "사용자 정보 수정": "editProfile",
+  "비상 연락처 수정": "editContacts",
+  "가상 통화 수신 벨소리 설정": "soundSetting",
+  "위치 권한 허용 여부 변경": "permissionSetting",
+  "시험 긴급 메시지 보내기": "setting",
+  도움말: "help",
+  문의하기: "settingDialog",
+  "개인정보 정책": "terms",
+  탈퇴하기: "withdraw",
 };
 
 export function Setting({ go, dialog }: { go: Go; dialog?: boolean }) {
+  const selectSetting = (name: string) => go(settingRoutes[name]);
+
   return (
     <Canvas className="setting">
       <div className={dialog ? "dimmed" : ""}>
@@ -26,25 +48,13 @@ export function Setting({ go, dialog }: { go: Go; dialog?: boolean }) {
           </div>
         </section>
         <section className="setting-groups">
-          <SettingGroup
-            go={go}
-            rows={[
-              ["사용자 정보 수정", "editProfile"],
-              ["비상 연락처 수정", "editContacts"],
-              ["가상 통화 수신 벨소리 설정", "soundSetting"],
-              ["위치 권한 허용 여부 변경", "permissionSetting"],
-              ["시험 긴급 메시지 보내기", "setting"],
-            ]}
-          />
-          <SettingGroup
-            go={go}
-            rows={[
-              ["도움말", "help"],
-              ["문의하기", "settingDialog"],
-            ]}
-          />
-          <SettingGroup go={go} rows={[["개인정보 정책", "terms"]]} />
-          <SettingGroup go={go} rows={[["탈퇴하기", "withdraw"]]} />
+          {settingBlockNames.map((names) => (
+            <SettingBlock
+              key={names.join("-")}
+              names={names}
+              onSelect={selectSetting}
+            />
+          ))}
         </section>
       </div>
       <footer>
@@ -64,17 +74,3 @@ export function Setting({ go, dialog }: { go: Go; dialog?: boolean }) {
     </Canvas>
   );
 }
-
-function SettingGroup({ rows, go }: SettingGroupProps) {
-  return (
-    <div className="setting-group">
-      {rows.map(([label, screen]) => (
-        <button key={label} onClick={() => go(screen)}>
-          <span>{label}</span>
-          <Icon name="chevron_right" />
-        </button>
-      ))}
-    </div>
-  );
-}
-

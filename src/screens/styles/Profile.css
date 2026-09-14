@@ -11,41 +11,12 @@
   margin-top: 43px;
 }
 
-.profile-field {
-  margin-bottom: 29px;
-}
-
 .field-label {
   margin: 0 0 8px;
   color: #fff;
   font-size: 13px;
   line-height: 19px;
   font-weight: 700;
-}
-
-.profile-field strong {
-  display: block;
-  margin-left: 4px;
-  color: rgba(255, 255, 255, 0.46);
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: 400;
-  letter-spacing: -0.2px;
-}
-
-.line {
-  height: 2px;
-  margin-top: 3px;
-  background: #6366f1;
-}
-
-.profile-field small {
-  display: block;
-  margin-top: 8px;
-  color: #7a8bfb;
-  font-size: 10px;
-  line-height: 13px;
-  font-weight: 500;
 }
 
 .segment {
