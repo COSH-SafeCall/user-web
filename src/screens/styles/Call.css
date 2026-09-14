@@ -2,6 +2,22 @@
   background: linear-gradient(180deg, #4a4f60 0%, #000 50%, #444365 100%);
 }
 
+.canvas.call-ringing {
+  animation: call-ringing-enter 0.26s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+@keyframes call-ringing-enter {
+  0% {
+    opacity: 0;
+    filter: brightness(0.9);
+  }
+
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
 .ring-title {
   position: absolute;
   top: 161px;
@@ -68,20 +84,35 @@
 }
 
 .ring-actions button {
+  position: relative;
   width: 76px;
   height: 76px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
   display: grid;
   place-items: center;
+  isolation: isolate;
+}
+
+.ring-actions button::before,
+.ring-actions button::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
 }
 
 .ring-actions button::before {
-  content: "";
-  position: absolute;
+  z-index: 1;
   width: 54px;
   height: 54px;
-  border-radius: 50%;
+}
+
+.ring-actions button::after {
+  z-index: 0;
+  inset: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  animation: ring-button-ripple 1.7s ease-out infinite;
 }
 
 .ring-actions .answer::before {
@@ -99,10 +130,34 @@
 
 .ring-call-icon {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: 32px;
   height: 32px;
   color: #fff;
+}
+
+@keyframes ring-button-ripple {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+
+  70%,
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas.call-ringing,
+  .ring-actions button::after {
+    animation: none;
+  }
+
+  .ring-actions button::after {
+    opacity: 0;
+  }
 }
 
 .call-active {

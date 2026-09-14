@@ -7,7 +7,7 @@ import type { Go } from "../types";
 
 export function CallRinging({ go }: { go: Go }) {
   return (
-    <Canvas className="call-gradient">
+    <Canvas className="call-gradient call-ringing">
       <section className="ring-title">
         <p>수신전화</p>
         <h1>아빠</h1>

@@ -1,8 +1,29 @@
-﻿.voice-loading {
+.voice-loading {
   position: relative;
   display: block;
   color: #fff;
   background: #455269;
+  transition:
+    background 0.26s cubic-bezier(0.22, 0.25, 0, 1),
+    filter 0.26s cubic-bezier(0.22, 0.25, 0, 1);
+}
+
+.voice-loading.ringing-soon {
+  background: linear-gradient(180deg, #4a4f60 0%, #000 50%, #444365 100%);
+  filter: brightness(0.76);
+}
+
+.voice-loading-content {
+  position: absolute;
+  inset: 0;
+  transition:
+    opacity 0.24s cubic-bezier(0.22, 0.25, 0, 1),
+    filter 0.24s cubic-bezier(0.22, 0.25, 0, 1);
+}
+
+.voice-loading.ringing-soon .voice-loading-content {
+  opacity: 0;
+  filter: blur(4px);
 }
 
 .voice-loading h1 {
@@ -72,7 +93,7 @@
   background: #a6efff;
 }
 
-.voice-loading p {
+.voice-loading-policy {
   position: absolute;
   top: 522px;
   left: 50%;
@@ -111,6 +132,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .voice-loading,
+  .voice-loading-content {
+    transition: none;
+    filter: none;
+  }
+
   .voice-bars span {
     animation: none;
     opacity: 1;
