@@ -27,6 +27,7 @@ export default function App() {
   const [personaUse, setPersonaUse] = useState(0);
   const [personaPeople, setPersonaPeople] = useState(0);
   const [soundMode, setSoundMode] = useState("소리");
+  const [ringtone, setRingtone] = useState("잔잔한 벨소리");
   const [contacts, setContacts] = useState<EmergencyContact[]>([]);
   const nextContactIdRef = useRef(1);
 
@@ -122,6 +123,8 @@ export default function App() {
               go={go}
               mode={soundMode}
               setMode={setSoundMode}
+              ringtone={ringtone}
+              setRingtone={setRingtone}
             />
           )}
           {screen === "permissionSetting" && <PermissionSetting go={go} />}

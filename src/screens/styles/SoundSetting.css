@@ -19,24 +19,44 @@
 }
 
 .sound-card > div {
-  margin-top: 13px;
+  margin-top: 10px;
   display: flex;
-  justify-content: space-around;
+  gap: 7px;
+  padding: 0 1px;
 }
 
 .sound-card button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   flex: 1;
+  min-height: 92px;
+  border-radius: 14px;
+  padding: 9px 0 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 9px;
   font-size: 12px;
   line-height: 14px;
   font-weight: 400;
+  transition: background-color 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sound-card button > :not(.sound-touch-feedback),
+.ringtone > :not(.sound-touch-feedback) {
+  position: relative;
+  z-index: 1;
 }
 
 .sound-card button + button {
-  border-left: 1px solid #455269;
+  box-shadow: -4px 0 0 -3.5px #455269;
+}
+
+.sound-card button:active {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .sound-card .icon {
@@ -57,9 +77,12 @@
 }
 
 .ringtone {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   width: min(calc(100% - 30px), 372px);
   height: 65px;
-  border-radius: 12px;
+  border-radius: 14px;
   background: #202b3d;
   margin: 10px auto;
   padding: 0 15px;
@@ -67,6 +90,42 @@
   align-items: center;
   justify-content: space-between;
   text-align: left;
+  transition: background-color 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ringtone:active {
+  background: #263249;
+}
+
+.sound-touch-feedback {
+  position: absolute;
+  z-index: 0;
+  left: var(--feedback-x);
+  top: var(--feedback-y);
+  width: var(--feedback-size);
+  height: var(--feedback-size);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0);
+  animation: sound-touch-feedback 580ms cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+@keyframes sound-touch-feedback {
+  0% {
+    opacity: 0.42;
+    transform: translate(-50%, -50%) scale(0);
+  }
+
+  72% {
+    opacity: 0.2;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 
 .ringtone b,
@@ -88,9 +147,170 @@
   font-weight: 400;
 }
 
+.ringtone-dialog-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 15px 24px;
+}
+
+.ringtone-dialog-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.56);
+  animation: ringtone-backdrop-enter 180ms ease both;
+}
+
+.ringtone-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 372px);
+  border-radius: 24px;
+  background: #202b3d;
+  padding: 20px 18px 18px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.4);
+  animation: ringtone-dialog-enter 220ms cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+.ringtone-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.ringtone-dialog-header h2 {
+  margin: 0;
+  font-size: 19px;
+  line-height: 24px;
+  font-weight: 700;
+}
+
+.ringtone-dialog-header p {
+  margin: 7px 0 0;
+  color: #9ca3af;
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 400;
+}
+
+.ringtone-dialog-header button {
+  flex: 0 0 auto;
+  min-width: 52px;
+  height: 31px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 600;
+}
+
+.ringtone-options {
+  display: grid;
+  gap: 9px;
+  margin-top: 18px;
+}
+
+.ringtone-options button {
+  min-height: 68px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.055);
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ringtone-options button:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ringtone-options button.selected {
+  background: rgba(99, 102, 241, 0.16);
+  box-shadow: inset 0 0 0 2px #6366f1;
+}
+
+.ringtone-options b,
+.ringtone-options small {
+  display: block;
+}
+
+.ringtone-options b {
+  color: #fff;
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 700;
+}
+
+.ringtone-options small {
+  margin-top: 5px;
+  color: #a7afbd;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 400;
+}
+
+.ringtone-options i {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #59657a;
+}
+
+.ringtone-options button.selected i {
+  border-color: #6366f1;
+  box-shadow: inset 0 0 0 4px #202b3d;
+  background: #6366f1;
+}
+
+@keyframes ringtone-backdrop-enter {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes ringtone-dialog-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.98);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (max-width: 401px) {
   .sound-card,
   .ringtone {
     width: calc(100vw - 30px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sound-touch-feedback,
+  .ringtone-dialog-backdrop,
+  .ringtone-dialog {
+    animation: none;
+  }
+
+  .sound-touch-feedback {
+    opacity: 0;
   }
 }
