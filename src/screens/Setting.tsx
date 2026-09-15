@@ -1,8 +1,10 @@
-﻿import "../components/styles/Avatar.css";
+import "../components/styles/Avatar.css";
 import "./styles/Setting.css";
+import { useState } from "react";
 import { MdPerson } from "react-icons/md";
 import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
+import { RequirementErrorMessage } from "../components/RequirementErrorMessage";
 import { SettingBlock } from "../components/SettingBlock";
 import type { Go, Screen } from "../types";
 
@@ -25,13 +27,21 @@ const settingRoutes: Record<string, Screen> = {
   "위치 권한 허용 여부 변경": "permissionSetting",
   "시험 긴급 메시지 보내기": "setting",
   도움말: "help",
-  문의하기: "settingDialog",
   "개인정보 정책": "terms",
   탈퇴하기: "withdraw",
 };
 
 export function Setting({ go, dialog }: { go: Go; dialog?: boolean }) {
-  const selectSetting = (name: string) => go(settingRoutes[name]);
+  const [showContactError, setShowContactError] = useState(false);
+
+  const selectSetting = (name: string) => {
+    if (name === "문의하기") {
+      setShowContactError(true);
+      return;
+    }
+
+    go(settingRoutes[name]);
+  };
 
   return (
     <Canvas className="setting">
@@ -68,6 +78,14 @@ export function Setting({ go, dialog }: { go: Go; dialog?: boolean }) {
             <button onClick={() => go("setting")}>취소</button>
             <button onClick={() => go("login")}>로그아웃</button>
           </div>
+        </div>
+      )}
+      {showContactError && (
+        <div className="modal-layer">
+          <RequirementErrorMessage
+            type="mobileOnlyFeature"
+            onConfirm={() => setShowContactError(false)}
+          />
         </div>
       )}
     </Canvas>

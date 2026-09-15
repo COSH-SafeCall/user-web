@@ -33,7 +33,8 @@ export type RequirementErrorMessageKey =
   | "logoutFailed"
   | "dataDeleteFailed"
   | "browserChanged"
-  | "unavailableCallControl";
+  | "unavailableCallControl"
+  | "mobileOnlyFeature";
 
 type RequirementErrorMessage = {
   title: string;
@@ -176,5 +177,9 @@ export const requirementErrorMessages: Record<
   unavailableCallControl: {
     title: "제공되지 않는 기능입니다.",
     description: "통화 종료를 제외한 나머지 기능은 현재 MVP에서 실제로 제공되지 않습니다.",
+  },
+  mobileOnlyFeature: {
+    title: "모바일 전용 기능입니다.",
+    description: "현재 웹 화면에서는 문의하기 기능을 사용할 수 없습니다.",
   },
 };

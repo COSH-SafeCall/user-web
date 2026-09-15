@@ -24,6 +24,90 @@
   background: #000;
 }
 
+.screen-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  min-height: 100%;
+  background: #000;
+}
+
+.screen-stage.same-flow {
+  animation: screen-stage-same-flow-enter 220ms cubic-bezier(0.22, 0.25, 0, 1)
+    both;
+}
+
+.screen-stage.flow-change {
+  animation: screen-stage-flow-change-enter 360ms
+    cubic-bezier(0.18, 0.78, 0.2, 1) both;
+}
+
+.screen-stage.flow-change::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 38%,
+    rgba(99, 102, 241, 0.12) 100%
+  );
+  animation: screen-stage-flow-change-sheen 360ms
+    cubic-bezier(0.18, 0.78, 0.2, 1) both;
+}
+
+@keyframes screen-stage-same-flow-enter {
+  0% {
+    opacity: 0;
+    transform: translateX(14px) scale(0.994);
+    filter: brightness(0.92);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes screen-stage-flow-change-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(54px) scale(0.972);
+    filter: brightness(0.86);
+  }
+
+  72% {
+    opacity: 1;
+    transform: translateY(-3px) scale(1.002);
+    filter: brightness(1.04);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes screen-stage-flow-change-sheen {
+  0% {
+    opacity: 0;
+    transform: translateY(70%);
+  }
+
+  46% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-22%);
+  }
+}
+
 .hidden-next {
   position: absolute;
   right: 0;
@@ -55,6 +139,18 @@
   .phone-frame {
     width: 100vw;
     min-height: 100vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen-stage.same-flow,
+  .screen-stage.flow-change,
+  .screen-stage.flow-change::before {
+    animation: none;
+  }
+
+  .screen-stage.flow-change::before {
+    opacity: 0;
   }
 }
 
