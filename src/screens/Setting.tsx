@@ -17,7 +17,6 @@ const settingBlockNames = [
     "위치 권한 허용 여부 변경",
   ],
   ["도움말", "문의하기"],
-  ["개인정보 정책"],
   ["탈퇴하기"],
 ];
 
@@ -28,7 +27,6 @@ const settingRoutes: Record<string, Screen> = {
   "위치 권한 허용 여부 변경": "permissionSetting",
   "시험 긴급 메시지 보내기": "setting",
   도움말: "help",
-  "개인정보 정책": "terms",
   탈퇴하기: "withdraw",
 };
 

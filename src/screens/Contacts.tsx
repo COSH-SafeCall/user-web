@@ -72,7 +72,9 @@ export function Contacts({
           </FeedbackButton>
         )}
       </section>
-      {!edit && <BottomButton label="다음" onClick={() => go("terms")} />}
+      {!edit && (
+        <BottomButton label="다음" onClick={() => go("permissionBasic")} />
+      )}
       {modal && canAddContact && (
         <div className="modal-layer">
           <ContactModal

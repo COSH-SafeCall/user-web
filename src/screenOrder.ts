@@ -5,7 +5,6 @@ export const screenOrder: Screen[] = [
   "profile",
   "contacts",
   "contactModal",
-  "terms",
   "permissionBasic",
   "permissionSos",
   "complete",
