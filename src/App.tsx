@@ -7,6 +7,7 @@ import { CallRinging } from "./screens/CallRinging";
 import { CallSetupCheck } from "./screens/CallSetupCheck";
 import { Complete } from "./screens/Complete";
 import { Contacts, type EmergencyContact } from "./screens/Contacts";
+import { EmergencyMessage } from "./screens/EmergencyMessage";
 import { HelpScreen } from "./screens/HelpScreen";
 import { Home } from "./screens/Home";
 import { Login } from "./screens/Login";
@@ -43,6 +44,7 @@ function getScreenFlow(screen: Screen): ScreenFlow {
 
   if (
     screen === "home" ||
+    screen === "emergencyMessage" ||
     screen === "personaUse" ||
     screen === "personaPeople" ||
     screen === "callSetupCheck" ||
@@ -161,6 +163,7 @@ export default function App() {
                 onQuickStart={startQuickCall}
               />
             )}
+            {screen === "emergencyMessage" && <EmergencyMessage go={go} />}
             {screen === "help" && <HelpScreen go={go} />}
             {screen === "callRinging" && <CallRinging go={go} />}
             {screen === "call" && <Call go={go} />}

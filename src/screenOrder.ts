@@ -9,6 +9,7 @@ export const screenOrder: Screen[] = [
   "permissionSos",
   "complete",
   "home",
+  "emergencyMessage",
   "personaUse",
   "personaPeople",
   "callSetupCheck",

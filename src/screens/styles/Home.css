@@ -329,6 +329,7 @@
 }
 
 .quick-start-active .home-copy,
+.quick-start-active .home-emergency-message,
 .quick-start-active .home-status {
   opacity: 0;
   pointer-events: none;
@@ -371,7 +372,7 @@
 
 .home-status {
   position: absolute;
-  top: 611px;
+  top: 650px;
   left: 50%;
   transform: translateX(-50%);
   width: min(calc(100% - 152px), 250px);
@@ -382,6 +383,47 @@
   line-height: 16px;
   font-weight: 400;
   z-index: 2;
+}
+
+.home-emergency-message {
+  position: absolute;
+  top: 590px;
+  left: 50%;
+  z-index: 3;
+  min-width: 190px;
+  height: 44px;
+  border: 1px solid rgba(138, 141, 255, 0.82);
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transform: translateX(-50%);
+  color: #fff;
+  background: linear-gradient(135deg, #273249 0%, #44409f 100%);
+  box-shadow: 0 8px 24px rgba(68, 64, 159, 0.24);
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 700;
+  transition:
+    transform 140ms ease,
+    filter 140ms ease,
+    opacity 150ms ease;
+}
+
+.home-emergency-message svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.home-emergency-message:hover,
+.home-emergency-message:focus-visible {
+  filter: brightness(1.18);
+}
+
+.home-emergency-message:active {
+  transform: translateX(-50%) scale(0.97);
 }
 
 .home-status b {

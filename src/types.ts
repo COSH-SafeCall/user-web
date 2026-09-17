@@ -12,6 +12,7 @@ export type Screen =
   | "callSetupCheck"
   | "voiceLoading"
   | "home"
+  | "emergencyMessage"
   | "help"
   | "callRinging"
   | "call"

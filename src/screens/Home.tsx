@@ -14,6 +14,7 @@ import {
   MdHelp,
   MdOutlineGroups,
   MdRecordVoiceOver,
+  MdSms,
   MdSettings,
 } from "react-icons/md";
 import { Canvas } from "../components/Canvas";
@@ -100,7 +101,6 @@ function clampDrag(x: number, y: number): Point {
 }
 
 export function Home({ go, onRegularStart, onQuickStart }: HomeProps) {
-  const canUseEmergencyMessage = false;
   const canShareLocation = false;
   const [quickStartOpen, setQuickStartOpen] = useState(false);
   const [activeChoice, setActiveChoice] = useState<number | null>(null);
@@ -305,20 +305,16 @@ export function Home({ go, onRegularStart, onQuickStart }: HomeProps) {
       >
         빠른 시작 메뉴
       </button>
+      <button
+        type="button"
+        className="home-emergency-message"
+        onClick={() => go("emergencyMessage")}
+      >
+        <MdSms aria-hidden="true" />
+        긴급 메시지 작성
+      </button>
       <p className="home-status">
-        긴급 메시지 기능이{" "}
-        {canUseEmergencyMessage ? (
-          <b>사용 가능</b>
-        ) : (
-          <button
-            className="home-status-link unavailable"
-            onClick={() => go("editContacts")}
-            aria-label="비상 연락처 등록 화면으로 이동"
-          >
-            사용 불가능
-          </button>
-        )}
-        합니다.
+        긴급 메시지는 <b>데모 화면</b>으로 제공됩니다.
         <br />
         위치 공유가{" "}
         {canShareLocation ? (
