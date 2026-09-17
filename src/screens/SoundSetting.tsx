@@ -9,6 +9,7 @@ import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
 import { Icon } from "../components/Icon";
 import { RequirementErrorMessage } from "../components/RequirementErrorMessage";
+import type { IncomingAlertMode, SettingView } from "../api/contracts";
 import type { Go, IconName } from "../types";
 
 type TouchFeedback = {
@@ -51,12 +52,16 @@ export function SoundSetting({
   setMode,
   ringtone,
   setRingtone,
+  setting,
+  onChangeMode,
 }: {
   go: Go;
   mode: string;
   setMode: (value: string) => void;
   ringtone: string;
   setRingtone: (value: string) => void;
+  setting: SettingView | null;
+  onChangeMode: (mode: IncomingAlertMode) => Promise<void>;
 }) {
   const modes: [string, IconName][] = [
     ["소리", "volume_up"],
@@ -68,6 +73,7 @@ export function SoundSetting({
   );
   const [isRingtoneDialogOpen, setIsRingtoneDialogOpen] = useState(false);
   const [showVibrationError, setShowVibrationError] = useState(false);
+  const [savingMode, setSavingMode] = useState(false);
   const feedbackTimeoutRef = useRef<number | null>(null);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
   const soundFeedbackAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -150,18 +156,34 @@ export function SoundSetting({
     });
   };
 
-  const selectSoundMode = (title: string) => {
+  const selectSoundMode = async (title: string) => {
     if (title === "진동") {
       setShowVibrationError(true);
       return;
     }
 
-    setMode(title);
+    if (savingMode) return;
+    setSavingMode(true);
 
-    if (title === "소리") {
-      playSoundModeFeedback();
+    try {
+      await onChangeMode(title === "소리" ? "RINGTONE" : "SILENT");
+      setMode(title);
+
+      if (title === "소리") {
+        playSoundModeFeedback();
+      }
+    } catch {
+      // 상위 공통 오류 모달을 표시하고 기존 모드를 유지합니다.
+    } finally {
+      setSavingMode(false);
     }
   };
+
+  useEffect(() => {
+    if (setting) {
+      setMode(setting.incomingAlertMode === "RINGTONE" ? "소리" : "무음");
+    }
+  }, [setMode, setting]);
 
   const selectRingtone = (option: RingtoneOption) => {
     setRingtone(option.name);
@@ -188,7 +210,8 @@ export function SoundSetting({
           {modes.map(([title, icon]) => (
             <button
               key={title}
-              onClick={() => selectSoundMode(title)}
+              disabled={savingMode}
+              onClick={() => void selectSoundMode(title)}
               onPointerDown={(event) => showTouchFeedback(event, title)}
             >
               {renderTouchFeedback(title)}

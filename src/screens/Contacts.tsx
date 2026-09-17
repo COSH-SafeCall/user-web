@@ -14,17 +14,19 @@ import { useScale } from "../hooks/useScale";
 import type { Go } from "../types";
 
 export type EmergencyContact = {
-  id: number;
+  id: string;
+  slot: 1 | 2;
   name: string;
   relation: string;
   phone: string;
+  version: number;
 };
 
 type ContactsProps = {
   go: Go;
   contacts: EmergencyContact[];
-  onAddContact: (contact: Omit<EmergencyContact, "id">) => void;
-  onDeleteContact: (contactId: number) => void;
+  onAddContact: (contact: FixedEmergencyContact) => Promise<void>;
+  onDeleteContact: (contact: EmergencyContact) => Promise<void>;
   modal?: boolean;
   edit?: boolean;
 };
@@ -116,8 +118,11 @@ export function Contacts({
               <button
                 type="button"
                 onClick={() => {
-                  onDeleteContact(pendingDeleteContact.id);
-                  setPendingDeleteContact(null);
+                  void onDeleteContact(pendingDeleteContact)
+                    .then(() => {
+                      setPendingDeleteContact(null);
+                    })
+                    .catch(() => undefined);
                 }}
               >
                 삭제
@@ -169,11 +174,24 @@ function ContactModal({
 }: {
   go: Go;
   contact: FixedEmergencyContact;
-  onAddContact: (contact: Omit<EmergencyContact, "id">) => void;
+  onAddContact: (contact: FixedEmergencyContact) => Promise<void>;
 }) {
-  const addContact = () => {
-    onAddContact(contact);
-    go("contacts");
+  const [adding, setAdding] = useState(false);
+
+  const addContact = async () => {
+    if (adding) {
+      return;
+    }
+
+    setAdding(true);
+    try {
+      await onAddContact(contact);
+      go("contacts");
+    } catch {
+      // 상위 공통 오류 모달을 유지하고 현재 추가 모달에 머뭅니다.
+    } finally {
+      setAdding(false);
+    }
   };
 
   return (
@@ -197,8 +215,12 @@ function ContactModal({
         >
           취소
         </FeedbackButton>
-        <FeedbackButton className="contact-action-button" onClick={addContact}>
-          추가
+        <FeedbackButton
+          className="contact-action-button"
+          onClick={() => void addContact()}
+          disabled={adding}
+        >
+          {adding ? "추가 중..." : "추가"}
         </FeedbackButton>
       </div>
     </div>
@@ -210,11 +232,13 @@ function FeedbackButton({
   className,
   ariaLabel,
   onClick,
+  disabled,
 }: {
   children: ReactNode;
   className: string;
   ariaLabel?: string;
   onClick: () => void;
+  disabled?: boolean;
 }) {
   const [pressed, setPressed] = useState(false);
   const feedbackTimerRef = useRef<number | null>(null);
@@ -234,7 +258,7 @@ function FeedbackButton({
   };
 
   const handleClick = () => {
-    if (feedbackTimerRef.current !== null) {
+    if (disabled || feedbackTimerRef.current !== null) {
       return;
     }
 
@@ -250,6 +274,7 @@ function FeedbackButton({
     <button
       className={`${className} ${pressed ? "pressed" : ""}`}
       type="button"
+      disabled={disabled}
       aria-label={ariaLabel}
       onPointerDown={() => setPressed(true)}
       onPointerLeave={stopPressFeedback}

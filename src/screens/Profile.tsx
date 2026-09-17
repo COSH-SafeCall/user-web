@@ -24,9 +24,24 @@ const fixedProfile = {
   gender: fixedUserProfile.gender,
 };
 
-export function Profile({ go, edit }: { go: Go; edit?: boolean }) {
-  const handleNext = () => {
-    go(edit ? "setting" : "contacts");
+export function Profile({
+  go,
+  edit,
+  onRegister,
+  busy,
+}: {
+  go: Go;
+  edit?: boolean;
+  onRegister?: () => Promise<void>;
+  busy?: boolean;
+}) {
+  const handleNext = async () => {
+    if (edit) {
+      go("setting");
+      return;
+    }
+
+    await onRegister?.();
   };
 
   return (
@@ -79,7 +94,12 @@ export function Profile({ go, edit }: { go: Go; edit?: boolean }) {
           </button>
         </div>
       </div>
-      <BottomButton label={edit ? "확인" : "다음"} onClick={handleNext} />
+      <BottomButton
+        label={busy ? "저장 중..." : edit ? "확인" : "다음"}
+        onClick={() => void handleNext()}
+        disabled={busy}
+        immediate
+      />
     </Canvas>
   );
 }

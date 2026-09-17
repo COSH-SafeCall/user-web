@@ -15,47 +15,58 @@ import { Canvas } from "../components/Canvas";
 import { Icon } from "../components/Icon";
 import { PersonaPersonOption } from "../components/PersonaPersonOption";
 import { PersonaSituationOption } from "../components/PersonaSituationOption";
+import type {
+  CallOptionsView,
+  CounterpartCode,
+  ScenarioCode,
+} from "../api/contracts";
 import type { Go } from "../types";
 
 type SituationChoice = {
+  code: ScenarioCode;
   icon: IconType;
   iconClass: string;
   text: string;
 };
 
 type PersonChoice = {
+  code: CounterpartCode;
   image: string;
   imageClass: string;
   label: string;
 };
 
-const situationChoices: SituationChoice[] = [
+const situationVisuals: SituationChoice[] = [
   {
+    code: "FOLLOWED",
     icon: MdDirectionsRun,
     iconClass: "run",
     text: "누군가 따라오는\n것 같아요",
   },
   {
+    code: "UNSAFE_TAXI",
     icon: MdDirectionsCarFilled,
     iconClass: "car",
     text: "택시 안이\n불안해요",
   },
   {
+    code: "STRANGER_NEARBY",
     icon: MdRecordVoiceOver,
     iconClass: "voice",
     text: "낯선 사람이\n근처에 있어요",
   },
   {
+    code: "WALKING_ALONE",
     icon: MdOutlineGroups,
     iconClass: "groups",
     text: "혼자 귀가하기\n무서워요",
   },
 ];
 
-const people: PersonChoice[] = [
-  { image: father, imageClass: "father", label: "아빠" },
-  { image: mother, imageClass: "mother", label: "엄마" },
-  { image: friend, imageClass: "friend", label: "친구" },
+const peopleVisuals: PersonChoice[] = [
+  { code: "FATHER", image: father, imageClass: "father", label: "아빠" },
+  { code: "MOTHER", image: mother, imageClass: "mother", label: "엄마" },
+  { code: "FRIEND", image: friend, imageClass: "friend", label: "친구" },
 ];
 
 function Pager({ active }: { active: number }) {
@@ -72,11 +83,20 @@ export function PersonaUse({
   go,
   selected,
   setSelected,
+  callOptions,
 }: {
   go: Go;
-  selected: number;
-  setSelected: (value: number) => void;
+  selected: ScenarioCode;
+  setSelected: (value: ScenarioCode) => void;
+  callOptions: CallOptionsView | null;
 }) {
+  const situationChoices = situationVisuals.map((visual) => ({
+    ...visual,
+    text:
+      callOptions?.scenarios.find((option) => option.code === visual.code)
+        ?.label ?? visual.text,
+  }));
+
   return (
     <GenericPersona
       title="어떤 상황에서 안심 통화를 사용하시나요?"
@@ -84,14 +104,14 @@ export function PersonaUse({
       back={() => go("home")}
       next={() => go("personaPeople")}
     >
-      {situationChoices.map(({ icon, iconClass, text }, index) => (
+      {situationChoices.map(({ code, icon, iconClass, text }) => (
         <PersonaSituationOption
-          key={text}
+          key={code}
           icon={icon}
           iconClass={iconClass}
           label={text}
-          selected={selected === index}
-          onClick={() => setSelected(index)}
+          selected={selected === code}
+          onClick={() => setSelected(code)}
         />
       ))}
     </GenericPersona>
@@ -102,11 +122,20 @@ export function PersonaPeople({
   go,
   selected,
   setSelected,
+  callOptions,
 }: {
   go: Go;
-  selected: number;
-  setSelected: (value: number) => void;
+  selected: CounterpartCode;
+  setSelected: (value: CounterpartCode) => void;
+  callOptions: CallOptionsView | null;
 }) {
+  const people = peopleVisuals.map((visual) => ({
+    ...visual,
+    label:
+      callOptions?.counterparts.find((option) => option.code === visual.code)
+        ?.label ?? visual.label,
+  }));
+
   return (
     <GenericPersona
       title="통화하고 싶은 가상의 인물을 선택해주세요."
@@ -114,14 +143,14 @@ export function PersonaPeople({
       back={() => go("personaUse")}
       next={() => go("callSetupCheck")}
     >
-      {people.map(({ image, imageClass, label }, index) => (
+      {people.map(({ code, image, imageClass, label }) => (
         <PersonaPersonOption
-          key={label}
+          key={code}
           image={image}
           imageClass={imageClass}
           label={label}
-          selected={selected === index}
-          onClick={() => setSelected(index)}
+          selected={selected === code}
+          onClick={() => setSelected(code)}
         />
       ))}
     </GenericPersona>

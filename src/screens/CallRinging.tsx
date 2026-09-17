@@ -8,8 +8,25 @@ import type { Go } from "../types";
 
 const CALL_ANSWER_TRANSITION_MS = 480;
 
-export function CallRinging({ go }: { go: Go }) {
+export function CallRinging({
+  go,
+  displayName,
+  onShown,
+  onAnswer,
+  onDecline,
+}: {
+  go: Go;
+  displayName: string;
+  onShown: () => Promise<void>;
+  onAnswer: () => Promise<void>;
+  onDecline: () => Promise<void>;
+}) {
   const [answering, setAnswering] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    void onShown();
+  }, [onShown]);
 
   useEffect(() => {
     if (!answering) {
@@ -31,8 +48,8 @@ export function CallRinging({ go }: { go: Go }) {
     >
       <section className="ring-title">
         <p>수신전화</p>
-        <h1>아빠</h1>
-        <img src={father} alt="아빠" />
+        <h1>{displayName}</h1>
+        <img src={father} alt={displayName} />
       </section>
       <p className="ring-warning">
         <Icon name="notifications" size={18} />
@@ -44,16 +61,28 @@ export function CallRinging({ go }: { go: Go }) {
         <button
           className="answer"
           aria-label="통화 받기"
-          disabled={answering}
-          onClick={() => setAnswering(true)}
+          disabled={answering || busy}
+          onClick={() => {
+            setBusy(true);
+            void onAnswer()
+              .then(() => setAnswering(true))
+              .catch(() => undefined)
+              .finally(() => setBusy(false));
+          }}
         >
           <MdCall className="ring-call-icon" aria-hidden="true" />
         </button>
         <button
           className="decline"
           aria-label="통화 거절"
-          disabled={answering}
-          onClick={() => go("home")}
+          disabled={answering || busy}
+          onClick={() => {
+            setBusy(true);
+            void onDecline().finally(() => {
+              setBusy(false);
+              go("home");
+            });
+          }}
         >
           <MdCallEnd className="ring-call-icon" aria-hidden="true" />
         </button>

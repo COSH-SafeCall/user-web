@@ -1,31 +1,70 @@
 ﻿import "./styles/VoiceLoading.css";
 import { useEffect, useState } from "react";
+import type { CallView, ConnectionView } from "../api/contracts";
+import { getConnection } from "../api/callApi";
+import { toUserMessage } from "../api/httpClient";
 import { Canvas } from "../components/Canvas";
-import type { Go } from "../types";
 
-const VOICE_LOADING_AUTO_ADVANCE_MS = 3000;
-const CALL_SCREEN_TRANSITION_MS = 260;
-
-export function VoiceLoading({ go }: { go: Go }) {
-  const [ringingSoon, setRingingSoon] = useState(false);
+export function VoiceLoading({
+  call,
+  callPageKey,
+  onConnected,
+}: {
+  call: CallView | null;
+  callPageKey: string;
+  onConnected: (connection: ConnectionView) => Promise<void>;
+}) {
+  const [connectionMessage, setConnectionMessage] = useState(
+    "연결 정보를 준비하고 있습니다.",
+  );
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   useEffect(() => {
-    const transitionTimerId = window.setTimeout(() => {
-      setRingingSoon(true);
-    }, VOICE_LOADING_AUTO_ADVANCE_MS);
+    if (!call) return;
 
-    const advanceTimerId = window.setTimeout(() => {
-      go("callRinging");
-    }, VOICE_LOADING_AUTO_ADVANCE_MS + CALL_SCREEN_TRANSITION_MS);
+    const controller = new AbortController();
+    let retryTimer: number | null = null;
+    let disposed = false;
+
+    const poll = async () => {
+      try {
+        const result = await getConnection(
+          call.id,
+          callPageKey,
+          controller.signal,
+        );
+
+        if (disposed) return;
+        if (result.status === "ISSUING") {
+          setConnectionMessage("AI 연결 정보를 발급하고 있습니다.");
+          retryTimer = window.setTimeout(
+            () => void poll(),
+            Math.max(result.retryAfterMs, 100),
+          );
+          return;
+        }
+
+        setConnectionMessage("연결 준비가 완료되었습니다.");
+        await onConnected(result);
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+        setConnectionError(toUserMessage(error));
+      }
+    };
+
+    void poll();
 
     return () => {
-      window.clearTimeout(transitionTimerId);
-      window.clearTimeout(advanceTimerId);
+      disposed = true;
+      controller.abort();
+      if (retryTimer !== null) window.clearTimeout(retryTimer);
     };
-  }, [go]);
+  }, [call, callPageKey, onConnected]);
 
   return (
-    <Canvas className={`voice-loading ${ringingSoon ? "ringing-soon" : ""}`}>
+    <Canvas className="voice-loading">
       <div className="voice-loading-content">
         <h1>가상 통화를 준비하고 있습니다...</h1>
         <div className="voice-bars">
@@ -35,6 +74,7 @@ export function VoiceLoading({ go }: { go: Go }) {
           <span />
           <span />
         </div>
+        <p aria-live="polite">{connectionError ?? connectionMessage}</p>
         <p className="voice-loading-policy">
           AI는 실제로 실행되지 않은 112 신고,<br />
           긴급 문자 발송 또는 위치 링크 전송이<br />

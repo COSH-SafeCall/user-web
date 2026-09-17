@@ -13,6 +13,7 @@ import { PiCassetteTapeFill } from "react-icons/pi";
 import alternativeCallAudio from "../assets/audio/alternative-call.wav";
 import { Canvas } from "../components/Canvas";
 import { RequirementErrorMessage } from "../components/RequirementErrorMessage";
+import type { CallEndReason } from "../api/contracts";
 import type { Go } from "../types";
 
 type CallAction = {
@@ -30,7 +31,15 @@ function formatCallTime(elapsedSeconds: number) {
   return `${minutes}:${seconds}`;
 }
 
-export function Call({ go }: { go: Go }) {
+export function Call({
+  go,
+  displayName,
+  onEnd,
+}: {
+  go: Go;
+  displayName: string;
+  onEnd: (reason: CallEndReason) => Promise<void>;
+}) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isAlternativeCallActive, setIsAlternativeCallActive] = useState(false);
   const [isCallEnding, setIsCallEnding] = useState(false);
@@ -92,11 +101,12 @@ export function Call({ go }: { go: Go }) {
     };
   }, []);
 
-  const handleAlternativeCallClick = () => {
+  const handleAlternativeCallClick = async () => {
     if (isCallEnding) {
       return;
     }
 
+    await onEnd("SWITCH_TO_FALLBACK");
     const alternativeAudio = alternativeAudioRef.current;
 
     setIsAlternativeCallActive(true);
@@ -111,7 +121,7 @@ export function Call({ go }: { go: Go }) {
     });
   };
 
-  const handleEndCallClick = () => {
+  const handleEndCallClick = async () => {
     if (isCallEnding) {
       return;
     }
@@ -119,6 +129,8 @@ export function Call({ go }: { go: Go }) {
     alternativeAudioRef.current?.pause();
     setShowUnavailableError(false);
     setIsCallEnding(true);
+
+    await onEnd("USER_ENDED");
 
     endCallTimeoutRef.current = window.setTimeout(() => {
       go("home");
@@ -132,7 +144,7 @@ export function Call({ go }: { go: Go }) {
       }`}
     >
       <p className="call-time">{formatCallTime(elapsedSeconds)}</p>
-      <h1>아빠</h1>
+      <h1>{displayName}</h1>
       <p className="call-hint">미리 녹음된 음성을 재생합니다.</p>
       {isAlternativeCallActive ? (
         <p className="alt-call-status" aria-live="polite">
@@ -142,7 +154,7 @@ export function Call({ go }: { go: Go }) {
         <button
           className="alt-call"
           disabled={isCallEnding}
-          onClick={handleAlternativeCallClick}
+          onClick={() => void handleAlternativeCallClick()}
         >
           대체통화
         </button>
@@ -170,7 +182,7 @@ export function Call({ go }: { go: Go }) {
         <button
           className="end"
           disabled={isCallEnding}
-          onClick={handleEndCallClick}
+          onClick={() => void handleEndCallClick()}
         >
           <MdCallEnd className="call-end-icon" aria-hidden="true" />
         </button>

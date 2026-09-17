@@ -18,12 +18,20 @@ import {
   MdSettings,
 } from "react-icons/md";
 import { Canvas } from "../components/Canvas";
+import type {
+  CallOptionsView,
+  HomeView,
+  ScenarioCode,
+} from "../api/contracts";
 import type { Go } from "../types";
 
 type HomeProps = {
   go: Go;
   onRegularStart: () => void;
-  onQuickStart: (situationIndex: number) => void;
+  onQuickStart: (scenarioCode: ScenarioCode) => void;
+  onEmergencyMessage: () => void;
+  homeData: HomeView | null;
+  callOptions: CallOptionsView | null;
 };
 
 type QuickStartChoice = {
@@ -31,6 +39,7 @@ type QuickStartChoice = {
   direction: "up" | "right" | "down" | "left";
   label: string;
   shortLabel: string;
+  code: ScenarioCode;
 };
 
 type Point = {
@@ -43,26 +52,30 @@ const MOVE_CANCEL_THRESHOLD = 14;
 const CHOICE_ACTIVATION_DISTANCE = 54;
 const MAX_DRAG_DISTANCE = 126;
 
-const quickStartChoices: QuickStartChoice[] = [
+const fallbackQuickStartChoices: QuickStartChoice[] = [
   {
+    code: "FOLLOWED",
     icon: MdDirectionsRun,
     direction: "up",
     label: "누군가 따라오는 것 같아요",
     shortLabel: "따라오는 사람",
   },
   {
+    code: "UNSAFE_TAXI",
     icon: MdDirectionsCarFilled,
     direction: "right",
     label: "택시 안이 불안해요",
     shortLabel: "택시 안",
   },
   {
+    code: "STRANGER_NEARBY",
     icon: MdRecordVoiceOver,
     direction: "down",
     label: "낯선 사람이 근처에 있어요",
     shortLabel: "낯선 사람",
   },
   {
+    code: "WALKING_ALONE",
     icon: MdOutlineGroups,
     direction: "left",
     label: "혼자 귀가하기 무서워요",
@@ -100,8 +113,37 @@ function clampDrag(x: number, y: number): Point {
   return { x: x * ratio, y: y * ratio };
 }
 
-export function Home({ go, onRegularStart, onQuickStart }: HomeProps) {
-  const canShareLocation = false;
+const quickChoiceVisuals = new Map(
+  fallbackQuickStartChoices.map((choice) => [choice.code, choice]),
+);
+
+export function Home({
+  go,
+  onRegularStart,
+  onQuickStart,
+  onEmergencyMessage,
+  homeData,
+  callOptions,
+}: HomeProps) {
+  const canShareLocation = homeData?.isLocationPermissionGranted ?? false;
+  const quickStartChoices = callOptions
+    ? callOptions.scenarios
+        .map((scenario) => {
+          const visual = quickChoiceVisuals.get(scenario.code);
+          return visual
+            ? {
+                ...visual,
+                label: scenario.label,
+              }
+            : null;
+        })
+        .filter((choice): choice is QuickStartChoice => choice !== null)
+        .sort(
+          (a, b) =>
+            fallbackQuickStartChoices.findIndex((item) => item.code === a.code) -
+            fallbackQuickStartChoices.findIndex((item) => item.code === b.code),
+        )
+    : fallbackQuickStartChoices;
   const [quickStartOpen, setQuickStartOpen] = useState(false);
   const [activeChoice, setActiveChoice] = useState<number | null>(null);
   const [dragOffset, setDragOffset] = useState<Point>({ x: 0, y: 0 });
@@ -147,7 +189,7 @@ export function Home({ go, onRegularStart, onQuickStart }: HomeProps) {
 
   const chooseQuickStart = (index: number) => {
     resetQuickStart();
-    onQuickStart(index);
+    onQuickStart(quickStartChoices[index].code);
   };
 
   useEffect(() => () => clearHoldTimer(), []);
@@ -165,7 +207,10 @@ export function Home({ go, onRegularStart, onQuickStart }: HomeProps) {
     setDragOffset({ x: 0, y: 0 });
     event.currentTarget.setPointerCapture(event.pointerId);
 
-    holdTimerRef.current = window.setTimeout(openQuickStart, LONG_PRESS_MS);
+    holdTimerRef.current = window.setTimeout(
+      openQuickStart,
+      callOptions?.quickStart.holdMs ?? LONG_PRESS_MS,
+    );
   };
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -206,7 +251,7 @@ export function Home({ go, onRegularStart, onQuickStart }: HomeProps) {
 
     if (menuWasOpen) {
       if (selectedChoice !== null) {
-        onQuickStart(selectedChoice);
+        onQuickStart(quickStartChoices[selectedChoice].code);
       }
       return;
     }
@@ -252,9 +297,9 @@ export function Home({ go, onRegularStart, onQuickStart }: HomeProps) {
         <p>원하는 상황으로 밀어서 선택하세요</p>
         <div className="quick-start-orbit" />
         {quickStartChoices.map(
-          ({ icon: ChoiceIcon, direction, label, shortLabel }, index) => (
+          ({ icon: ChoiceIcon, direction, label, shortLabel, code }, index) => (
             <button
-              key={label}
+              key={code}
               type="button"
               className={`quick-start-choice ${direction} ${
                 activeChoice === index ? "selected" : ""
@@ -308,7 +353,7 @@ export function Home({ go, onRegularStart, onQuickStart }: HomeProps) {
       <button
         type="button"
         className="home-emergency-message"
-        onClick={() => go("emergencyMessage")}
+        onClick={onEmergencyMessage}
       >
         <MdSms aria-hidden="true" />
         긴급 메시지 작성

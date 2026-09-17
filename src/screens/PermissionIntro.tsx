@@ -5,6 +5,7 @@ import { Canvas } from "../components/Canvas";
 import { Icon } from "../components/Icon";
 import { useScale } from "../hooks/useScale";
 import type { Go, IconName } from "../types";
+import type { PermissionStatus } from "../api/contracts";
 import {
   requestLocationPermission,
   requestMicrophonePermission,
@@ -14,6 +15,10 @@ import {
 type PermissionIntroProps = {
   go: Go;
   sos: boolean;
+  onSavePermissions?: (permissions: Array<{
+    code: "MICROPHONE" | "LOCATION";
+    status: PermissionStatus;
+  }>) => Promise<void>;
 };
 
 type PermissionRowProps = {
@@ -68,7 +73,11 @@ function getMicrophoneErrorMessage(result: PermissionRequestResult) {
   return "마이크 권한을 확인하지 못했습니다. 마이크 연결 상태를 확인한 뒤 다시 시도해주세요.";
 }
 
-export function PermissionIntro({ go, sos }: PermissionIntroProps) {
+export function PermissionIntro({
+  go,
+  sos,
+  onSavePermissions,
+}: PermissionIntroProps) {
   const [requesting, setRequesting] = useState(false);
   const [canContinueWithoutLocation, setCanContinueWithoutLocation] =
     useState(false);
@@ -100,26 +109,41 @@ export function PermissionIntro({ go, sos }: PermissionIntroProps) {
       requestLocationPermission(),
     ]);
 
-    setRequesting(false);
+    try {
+      await onSavePermissions?.([
+        {
+          code: "MICROPHONE",
+          status: microphoneResult.granted ? "GRANTED" : "DENIED",
+        },
+        {
+          code: "LOCATION",
+          status: locationResult.granted ? "GRANTED" : "DENIED",
+        },
+      ]);
 
-    if (!microphoneResult.granted) {
-      setPermissionMessage({
-        type: "error",
-        text: getMicrophoneErrorMessage(microphoneResult),
-      });
-      return;
+      if (!microphoneResult.granted) {
+        setPermissionMessage({
+          type: "error",
+          text: getMicrophoneErrorMessage(microphoneResult),
+        });
+        return;
+      }
+
+      if (!locationResult.granted) {
+        setCanContinueWithoutLocation(true);
+        setPermissionMessage({
+          type: "warning",
+          text: "위치 권한이 없어 위치 링크 없이 진행합니다. 브라우저 사이트 설정에서 위치 권한을 다시 허용할 수 있습니다.",
+        });
+        return;
+      }
+
+      go("permissionSos");
+    } catch {
+      // 상위 공통 오류 모달을 표시하고 현재 화면에 머뭅니다.
+    } finally {
+      setRequesting(false);
     }
-
-    if (!locationResult.granted) {
-      setCanContinueWithoutLocation(true);
-      setPermissionMessage({
-        type: "warning",
-        text: "위치 권한이 없어 위치 링크 없이 진행합니다. 브라우저 사이트 설정에서 위치 권한을 다시 허용할 수 있습니다.",
-      });
-      return;
-    }
-
-    go("permissionSos");
   };
 
   return (

@@ -1,4 +1,6 @@
-export type UserGender = "MALE" | "FEMALE" | "UNKNOWN";
+import type { UserGender } from "./api/contracts";
+
+export type { UserGender };
 
 export type FixedUserProfile = {
   userId: string;
@@ -26,11 +28,11 @@ export const fixedEmergencyContacts: FixedEmergencyContact[] = [
   {
     name: "보호자 1",
     relation: "아버지",
-    phone: "010-0000-0000",
+    phone: "010-1111-2222",
   },
   {
     name: "보호자 2",
     relation: "어머니",
-    phone: "010-0000-0000",
+    phone: "010-3333-4444",
   },
 ];

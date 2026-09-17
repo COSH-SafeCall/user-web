@@ -6,7 +6,6 @@ import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
 import { RequirementErrorMessage } from "../components/RequirementErrorMessage";
 import { SettingBlock } from "../components/SettingBlock";
-import { fixedUserProfile } from "../fixedUserData";
 import type { Go, Screen } from "../types";
 
 const settingBlockNames = [
@@ -30,7 +29,19 @@ const settingRoutes: Record<string, Screen> = {
   탈퇴하기: "withdraw",
 };
 
-export function Setting({ go, dialog }: { go: Go; dialog?: boolean }) {
+export function Setting({
+  go,
+  dialog,
+  userName,
+  onLogout,
+  busy,
+}: {
+  go: Go;
+  dialog?: boolean;
+  userName: string;
+  onLogout: () => Promise<void>;
+  busy?: boolean;
+}) {
   const [showContactError, setShowContactError] = useState(false);
 
   const selectSetting = (name: string) => {
@@ -51,7 +62,7 @@ export function Setting({ go, dialog }: { go: Go; dialog?: boolean }) {
             <MdPerson className="profile-person-icon" aria-hidden="true" />
           </div>
           <div>
-            <b>{fixedUserProfile.name}</b>
+            <b>{userName}</b>
             <span>가상 회원</span>
           </div>
         </section>
@@ -75,7 +86,9 @@ export function Setting({ go, dialog }: { go: Go; dialog?: boolean }) {
           <p>로그아웃 시에도 안심통화 기능은 사용 가능합니다.</p>
           <div>
             <button onClick={() => go("setting")}>취소</button>
-            <button onClick={() => go("login")}>로그아웃</button>
+            <button disabled={busy} onClick={() => void onLogout()}>
+              {busy ? "처리 중..." : "로그아웃"}
+            </button>
           </div>
         </div>
       )}

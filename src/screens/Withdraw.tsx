@@ -4,7 +4,15 @@ import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
 import type { Go } from "../types";
 
-export function Withdraw({ go }: { go: Go }) {
+export function Withdraw({
+  go,
+  onWithdraw,
+  busy,
+}: {
+  go: Go;
+  onWithdraw: () => Promise<void>;
+  busy?: boolean;
+}) {
   return (
     <Canvas className="withdraw">
       <Header title="탈퇴하기" back={() => go("setting")} />
@@ -15,7 +23,12 @@ export function Withdraw({ go }: { go: Go }) {
       </p>
       <div className="two-buttons">
         <BottomButton dark label="취소" onClick={() => go("setting")} />
-        <BottomButton label="탈퇴하기" onClick={() => go("deletionStatus")} />
+        <BottomButton
+          label={busy ? "요청 중..." : "탈퇴하기"}
+          onClick={() => void onWithdraw()}
+          disabled={busy}
+          immediate
+        />
       </div>
     </Canvas>
   );
