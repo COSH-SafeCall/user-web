@@ -1,7 +1,7 @@
 ﻿import "../components/styles/Avatar.css";
 import "./styles/Contacts.css";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { MdPerson } from "react-icons/md";
+import { MdDeleteOutline, MdPerson } from "react-icons/md";
 import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
@@ -24,6 +24,7 @@ type ContactsProps = {
   go: Go;
   contacts: EmergencyContact[];
   onAddContact: (contact: Omit<EmergencyContact, "id">) => void;
+  onDeleteContact: (contactId: number) => void;
   modal?: boolean;
   edit?: boolean;
 };
@@ -32,10 +33,13 @@ export function Contacts({
   go,
   contacts,
   onAddContact,
+  onDeleteContact,
   modal,
   edit,
 }: ContactsProps) {
   const canAddContact = contacts.length < 2;
+  const [pendingDeleteContact, setPendingDeleteContact] =
+    useState<EmergencyContact | null>(null);
 
   return (
     <Canvas className="contacts" style={useScale()}>
@@ -60,7 +64,12 @@ export function Contacts({
         } ${edit ? "edit" : ""}`}
       >
         {contacts.map((contact) => (
-          <ContactCard key={contact.id} contact={contact} />
+          <ContactCard
+            key={contact.id}
+            contact={contact}
+            deletable={Boolean(edit)}
+            onDelete={() => setPendingDeleteContact(contact)}
+          />
         ))}
         {canAddContact && (
           <FeedbackButton
@@ -84,20 +93,71 @@ export function Contacts({
           />
         </div>
       )}
+      {edit && pendingDeleteContact && (
+        <div className="modal-layer">
+          <section
+            className="contact-delete-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="contact-delete-title"
+          >
+            <h2 id="contact-delete-title">긴급 연락처를 삭제할까요?</h2>
+            <p>
+              {pendingDeleteContact.name} 연락처가 목록에서 삭제됩니다. 삭제 후
+              다시 추가할 수 있습니다.
+            </p>
+            <div>
+              <button
+                type="button"
+                onClick={() => setPendingDeleteContact(null)}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onDeleteContact(pendingDeleteContact.id);
+                  setPendingDeleteContact(null);
+                }}
+              >
+                삭제
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </Canvas>
   );
 }
 
-function ContactCard({ contact }: { contact: EmergencyContact }) {
+function ContactCard({
+  contact,
+  deletable,
+  onDelete,
+}: {
+  contact: EmergencyContact;
+  deletable: boolean;
+  onDelete: () => void;
+}) {
   return (
     <div className="contact-card">
       <div className="avatar">
         <MdPerson className="profile-person-icon" aria-hidden="true" />
       </div>
-      <div>
+      <div className="contact-card-info">
         <b>{contact.name}</b>
         <span>{contact.relation}</span>
       </div>
+      {deletable && (
+        <button
+          type="button"
+          className="contact-delete-button"
+          onClick={onDelete}
+          aria-label={`${contact.name} 연락처 삭제`}
+        >
+          <MdDeleteOutline aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
 }

@@ -15,7 +15,7 @@ export function Withdraw({ go }: { go: Go }) {
       </p>
       <div className="two-buttons">
         <BottomButton dark label="취소" onClick={() => go("setting")} />
-        <BottomButton label="탈퇴하기" onClick={() => go("login")} />
+        <BottomButton label="탈퇴하기" onClick={() => go("deletionStatus")} />
       </div>
     </Canvas>
   );

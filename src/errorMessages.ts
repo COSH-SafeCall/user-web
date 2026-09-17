@@ -32,7 +32,8 @@ export type RequirementErrorMessageKey =
   | "dataDeleteFailed"
   | "browserChanged"
   | "unavailableCallControl"
-  | "mobileOnlyFeature";
+  | "mobileOnlyFeature"
+  | "mobileOnlyVibration";
 
 type RequirementErrorMessage = {
   title: string;
@@ -171,5 +172,9 @@ export const requirementErrorMessages: Record<
   mobileOnlyFeature: {
     title: "모바일 전용 기능입니다.",
     description: "현재 웹 화면에서는 문의하기 기능을 사용할 수 없습니다.",
+  },
+  mobileOnlyVibration: {
+    title: "모바일 앱 전용 기능입니다.",
+    description: "진동 수신 모드는 모바일 애플리케이션에서만 사용할 수 있습니다. 기존 수신 방식을 유지합니다.",
   },
 };

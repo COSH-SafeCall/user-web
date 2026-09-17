@@ -20,6 +20,7 @@ export const screenOrder: Screen[] = [
   "setting",
   "settingDialog",
   "withdraw",
+  "deletionStatus",
   "editProfile",
   "editContacts",
   "soundSetting",

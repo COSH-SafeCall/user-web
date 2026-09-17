@@ -7,6 +7,61 @@
   padding-bottom: 20px;
 }
 
+.message-load-state {
+  width: calc(100% - 48px);
+  margin: 126px auto 0;
+  border: 1px solid #303b51;
+  border-radius: 22px;
+  padding: 34px 22px;
+  color: #fff;
+  background: #1e293b;
+  text-align: center;
+}
+
+.message-load-state h2 {
+  margin: 18px 0 8px;
+  font-size: 17px;
+  line-height: 24px;
+}
+
+.message-load-state p {
+  margin: 0;
+  color: #b6bdca;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.message-load-state.error h2 {
+  margin-top: 0;
+}
+
+.message-load-state button {
+  width: 100%;
+  height: 42px;
+  margin-top: 22px;
+  border-radius: 11px;
+  color: #fff;
+  background: #6366f1;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.message-loading-spinner {
+  width: 38px;
+  height: 38px;
+  border: 3px solid rgba(138, 141, 255, 0.24);
+  border-top-color: #7779ff;
+  border-radius: 50%;
+  display: inline-block;
+  animation: message-loading-spin 0.8s linear infinite;
+}
+
+@keyframes message-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .message-recipients {
   padding: 18px 24px 16px;
   border-bottom: 1px solid #202636;

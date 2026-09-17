@@ -7,6 +7,7 @@ import { CallRinging } from "./screens/CallRinging";
 import { CallSetupCheck } from "./screens/CallSetupCheck";
 import { Complete } from "./screens/Complete";
 import { Contacts, type EmergencyContact } from "./screens/Contacts";
+import { DeletionStatus } from "./screens/DeletionStatus";
 import { EmergencyMessage } from "./screens/EmergencyMessage";
 import { HelpScreen } from "./screens/HelpScreen";
 import { Home } from "./screens/Home";
@@ -34,6 +35,7 @@ function getScreenFlow(screen: Screen): ScreenFlow {
     screen === "setting" ||
     screen === "settingDialog" ||
     screen === "withdraw" ||
+    screen === "deletionStatus" ||
     screen === "editProfile" ||
     screen === "editContacts" ||
     screen === "soundSetting" ||
@@ -102,6 +104,12 @@ export default function App() {
     });
   };
 
+  const deleteContact = (contactId: number) => {
+    setContacts((current) =>
+      current.filter((contact) => contact.id !== contactId),
+    );
+  };
+
   const startRegularCall = () => {
     go("personaUse");
   };
@@ -124,6 +132,7 @@ export default function App() {
                 go={go}
                 contacts={contacts}
                 onAddContact={addContact}
+                onDeleteContact={deleteContact}
               />
             )}
             {screen === "contactModal" && (
@@ -131,6 +140,7 @@ export default function App() {
                 go={go}
                 contacts={contacts}
                 onAddContact={addContact}
+                onDeleteContact={deleteContact}
                 modal
               />
             )}
@@ -170,12 +180,14 @@ export default function App() {
             {screen === "setting" && <Setting go={go} />}
             {screen === "settingDialog" && <Setting go={go} dialog />}
             {screen === "withdraw" && <Withdraw go={go} />}
+            {screen === "deletionStatus" && <DeletionStatus go={go} />}
             {screen === "editProfile" && <Profile go={go} edit />}
             {screen === "editContacts" && (
               <Contacts
                 go={go}
                 contacts={contacts}
                 onAddContact={addContact}
+                onDeleteContact={deleteContact}
                 edit
               />
             )}

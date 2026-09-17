@@ -19,6 +19,7 @@ export type Screen =
   | "setting"
   | "settingDialog"
   | "withdraw"
+  | "deletionStatus"
   | "editProfile"
   | "editContacts"
   | "soundSetting"

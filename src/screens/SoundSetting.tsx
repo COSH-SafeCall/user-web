@@ -8,6 +8,7 @@ import soundModeFeedbackAudio from "../assets/audio/sound-mode-feedback.wav";
 import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
 import { Icon } from "../components/Icon";
+import { RequirementErrorMessage } from "../components/RequirementErrorMessage";
 import type { Go, IconName } from "../types";
 
 type TouchFeedback = {
@@ -42,6 +43,8 @@ const ringtoneOptions: RingtoneOption[] = [
   },
 ];
 
+const RINGTONE_SELECTION_SCREEN_ENABLED = false;
+
 export function SoundSetting({
   go,
   mode,
@@ -64,6 +67,7 @@ export function SoundSetting({
     null,
   );
   const [isRingtoneDialogOpen, setIsRingtoneDialogOpen] = useState(false);
+  const [showVibrationError, setShowVibrationError] = useState(false);
   const feedbackTimeoutRef = useRef<number | null>(null);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
   const soundFeedbackAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -146,22 +150,16 @@ export function SoundSetting({
     });
   };
 
-  const playVibrationFeedback = () => {
-    if ("vibrate" in navigator) {
-      navigator.vibrate(40);
-    }
-  };
-
   const selectSoundMode = (title: string) => {
+    if (title === "진동") {
+      setShowVibrationError(true);
+      return;
+    }
+
     setMode(title);
 
     if (title === "소리") {
       playSoundModeFeedback();
-      return;
-    }
-
-    if (title === "진동") {
-      playVibrationFeedback();
     }
   };
 
@@ -173,6 +171,12 @@ export function SoundSetting({
   const closeRingtoneDialog = () => {
     previewAudioRef.current?.pause();
     setIsRingtoneDialogOpen(false);
+  };
+
+  const handleRingtoneEntryClick = () => {
+    if (RINGTONE_SELECTION_SCREEN_ENABLED) {
+      setIsRingtoneDialogOpen(true);
+    }
   };
 
   return (
@@ -197,7 +201,7 @@ export function SoundSetting({
       </section>
       <button
         className="ringtone"
-        onClick={() => setIsRingtoneDialogOpen(true)}
+        onClick={handleRingtoneEntryClick}
         onPointerDown={(event) => showTouchFeedback(event, "ringtone")}
       >
         {renderTouchFeedback("ringtone")}
@@ -208,7 +212,7 @@ export function SoundSetting({
         <Icon name="chevron_right" />
       </button>
 
-      {isRingtoneDialogOpen && (
+      {RINGTONE_SELECTION_SCREEN_ENABLED && isRingtoneDialogOpen && (
         <div className="ringtone-dialog-layer" role="presentation">
           <button
             className="ringtone-dialog-backdrop"
@@ -249,6 +253,14 @@ export function SoundSetting({
               })}
             </div>
           </section>
+        </div>
+      )}
+      {showVibrationError && (
+        <div className="modal-layer">
+          <RequirementErrorMessage
+            type="mobileOnlyVibration"
+            onConfirm={() => setShowVibrationError(false)}
+          />
         </div>
       )}
     </Canvas>
