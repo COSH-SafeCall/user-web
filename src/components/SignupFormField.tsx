@@ -5,7 +5,8 @@ type SignupFormFieldProps = {
   label: string;
   value: string;
   name: string;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
+  readOnly?: boolean;
   description?: ReactNode;
   warning?: ReactNode;
   inputMode?: "text" | "tel" | "numeric";
@@ -17,6 +18,7 @@ export function SignupFormField({
   value,
   name,
   onChange,
+  readOnly = false,
   description,
   warning,
   inputMode = "text",
@@ -30,7 +32,10 @@ export function SignupFormField({
         value={value}
         inputMode={inputMode}
         maxLength={maxLength}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={
+          onChange ? (event) => onChange(event.target.value) : undefined
+        }
+        readOnly={readOnly}
         aria-label={label}
       />
       <div className="signup-form-field-line" />

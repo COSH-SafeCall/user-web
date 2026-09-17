@@ -1,4 +1,4 @@
-﻿import "./App.css";
+import "./App.css";
 import { useRef, useState } from "react";
 import { BottomDrawer } from "./components/BottomDrawer";
 import { screenOrder } from "./screenOrder";
@@ -9,7 +9,6 @@ import { Complete } from "./screens/Complete";
 import { Contacts, type EmergencyContact } from "./screens/Contacts";
 import { HelpScreen } from "./screens/HelpScreen";
 import { Home } from "./screens/Home";
-import { KakaoError } from "./screens/KakaoError";
 import { Login } from "./screens/Login";
 import { PermissionIntro } from "./screens/PermissionIntro";
 import { PermissionSetting } from "./screens/PermissionSetting";
@@ -26,7 +25,7 @@ type ScreenFlow = "onboarding" | "home" | "setting" | "help";
 type ScreenTransition = "same-flow" | "flow-change";
 
 function getScreenFlow(screen: Screen): ScreenFlow {
-  if (screen === "help" || screen === "helpOpen") {
+  if (screen === "help") {
     return "help";
   }
 
@@ -101,6 +100,16 @@ export default function App() {
     });
   };
 
+  const startRegularCall = () => {
+    go("personaUse");
+  };
+
+  const startQuickCall = (situationIndex: number) => {
+    setPersonaUse(situationIndex);
+    setPersonaPeople(0);
+    go("voiceLoading");
+  };
+
   return (
     <div className="app-root">
       <div className="desktop-shell">
@@ -128,7 +137,6 @@ export default function App() {
               <PermissionIntro go={go} sos={false} />
             )}
             {screen === "permissionSos" && <PermissionIntro go={go} sos />}
-            {screen === "permissionToast" && <KakaoError go={go} />}
             {screen === "complete" && <Complete go={go} />}
             {screen === "personaUse" && (
               <PersonaUse
@@ -146,9 +154,14 @@ export default function App() {
             )}
             {screen === "callSetupCheck" && <CallSetupCheck go={go} />}
             {screen === "voiceLoading" && <VoiceLoading go={go} />}
-            {screen === "home" && <Home go={go} />}
+            {screen === "home" && (
+              <Home
+                go={go}
+                onRegularStart={startRegularCall}
+                onQuickStart={startQuickCall}
+              />
+            )}
             {screen === "help" && <HelpScreen go={go} />}
-            {screen === "helpOpen" && <HelpScreen go={go} open />}
             {screen === "callRinging" && <CallRinging go={go} />}
             {screen === "call" && <Call go={go} />}
             {screen === "setting" && <Setting go={go} />}
@@ -185,7 +198,3 @@ export default function App() {
     </div>
   );
 }
-
-
-
-

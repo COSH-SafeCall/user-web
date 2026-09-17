@@ -1,4 +1,5 @@
-﻿import "./styles/HelpScreen.css";
+import "./styles/HelpScreen.css";
+import { useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
 import { HelpQuestionItem } from "../components/HelpQuestionItem";
@@ -9,21 +10,19 @@ const helpRows = [
     question: "SOS 기능을 다시 켜고 싶어요.",
     answer: "SOS 기능은 기기 설정에서 다시 활성화할 수 있습니다.",
   },
-  {
-    question: "긴급 연락처를 수정하고 싶어요.",
-  },
-  {
-    question: "긴급 연락처를 입력하지 않아도 괜찮은가요?",
-  },
-  {
-    question: "가상 전화를 소리 말고 진동이나 무음으로 받고 싶어요.",
-  },
-  {
-    question: "음량 조절이 필수적인가요?",
-  },
+  { question: "긴급 연락처를 수정하고 싶어요." },
+  { question: "긴급 연락처를 입력하지 않아도 괜찮은가요?" },
+  { question: "가상 전화를 소리 말고 진동이나 무음으로 받고 싶어요." },
+  { question: "음량 조절이 필수적인가요?" },
 ];
 
-export function HelpScreen({ go, open }: { go: Go; open?: boolean }) {
+export function HelpScreen({ go }: { go: Go }) {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const toggleAnswer = (index: number) => {
+    setOpenIndex((currentIndex) => (currentIndex === index ? null : index));
+  };
+
   return (
     <Canvas className="help-screen">
       <Header title="도움말" back={() => go("setting")} />
@@ -33,8 +32,8 @@ export function HelpScreen({ go, open }: { go: Go; open?: boolean }) {
             key={row.question}
             question={row.question}
             answer={row.answer}
-            open={open && index === 0}
-            onClick={() => index === 0 && go("helpOpen")}
+            open={openIndex === index}
+            onClick={row.answer ? () => toggleAnswer(index) : undefined}
           />
         ))}
       </section>

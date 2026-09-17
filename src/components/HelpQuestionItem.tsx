@@ -15,7 +15,11 @@ export function HelpQuestionItem({
   onClick,
 }: HelpQuestionItemProps) {
   return (
-    <button className="help-question-item" onClick={onClick}>
+    <button
+      className={`help-question-item${open ? " open" : ""}`}
+      onClick={onClick}
+      aria-expanded={answer ? open : undefined}
+    >
       <span>
         <b>Q.</b> {question}
       </span>

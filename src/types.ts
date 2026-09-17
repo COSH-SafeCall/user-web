@@ -1,4 +1,4 @@
-﻿export type Screen =
+export type Screen =
   | "login"
   | "profile"
   | "contacts"
@@ -6,7 +6,6 @@
   | "terms"
   | "permissionBasic"
   | "permissionSos"
-  | "permissionToast"
   | "complete"
   | "personaUse"
   | "personaPeople"
@@ -14,7 +13,6 @@
   | "voiceLoading"
   | "home"
   | "help"
-  | "helpOpen"
   | "callRinging"
   | "call"
   | "setting"

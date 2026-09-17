@@ -178,6 +178,10 @@
   caret-color: #6366f1;
 }
 
+.modal-field input:read-only {
+  cursor: default;
+}
+
 .modal-field small {
   display: block;
   margin-top: 8px;

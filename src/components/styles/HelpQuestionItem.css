@@ -16,6 +16,14 @@
   font-size: 12px;
 }
 
+.help-question-item .icon {
+  transition: transform 180ms ease;
+}
+
+.help-question-item.open .icon {
+  transform: rotate(90deg);
+}
+
 .help-question-item p {
   grid-column: 1 / -1;
   color: #9ca3af;

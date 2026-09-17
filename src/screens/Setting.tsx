@@ -6,11 +6,12 @@ import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
 import { RequirementErrorMessage } from "../components/RequirementErrorMessage";
 import { SettingBlock } from "../components/SettingBlock";
+import { fixedUserProfile } from "../fixedUserData";
 import type { Go, Screen } from "../types";
 
 const settingBlockNames = [
   [
-    "사용자 정보 수정",
+    "사용자 정보 확인",
     "비상 연락처 수정",
     "가상 통화 수신 벨소리 설정",
     "위치 권한 허용 여부 변경",
@@ -21,7 +22,7 @@ const settingBlockNames = [
 ];
 
 const settingRoutes: Record<string, Screen> = {
-  "사용자 정보 수정": "editProfile",
+  "사용자 정보 확인": "editProfile",
   "비상 연락처 수정": "editContacts",
   "가상 통화 수신 벨소리 설정": "soundSetting",
   "위치 권한 허용 여부 변경": "permissionSetting",
@@ -52,8 +53,8 @@ export function Setting({ go, dialog }: { go: Go; dialog?: boolean }) {
             <MdPerson className="profile-person-icon" aria-hidden="true" />
           </div>
           <div>
-            <b>이름</b>
-            <span>카카오 로그인</span>
+            <b>{fixedUserProfile.name}</b>
+            <span>가상 회원</span>
           </div>
         </section>
         <section className="setting-groups">

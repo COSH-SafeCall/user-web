@@ -25,6 +25,10 @@
   letter-spacing: -0.2px;
 }
 
+.signup-form-field input:read-only {
+  cursor: default;
+}
+
 .signup-form-field-line {
   height: 2px;
   margin-top: 3px;

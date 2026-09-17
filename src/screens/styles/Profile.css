@@ -38,6 +38,11 @@
   font-weight: 400;
 }
 
+.segment button:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
 .segment .selected {
   background: #6366f1;
   color: #fff;

@@ -6,6 +6,10 @@ import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
 import { Icon } from "../components/Icon";
+import {
+  fixedEmergencyContacts,
+  type FixedEmergencyContact,
+} from "../fixedUserData";
 import { useScale } from "../hooks/useScale";
 import type { Go } from "../types";
 
@@ -23,26 +27,6 @@ type ContactsProps = {
   modal?: boolean;
   edit?: boolean;
 };
-
-const phonePattern = /^010-\d{4}-\d{4}$/;
-
-function isValidPhoneNumber(phone: string) {
-  return phonePattern.test(phone.trim());
-}
-
-function formatPhoneInput(value: string) {
-  const digits = value.replace(/\D/g, "").slice(0, 11);
-
-  if (digits.length <= 3) {
-    return digits;
-  }
-
-  if (digits.length <= 7) {
-    return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-  }
-
-  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
-}
 
 export function Contacts({
   go,
@@ -89,9 +73,13 @@ export function Contacts({
         )}
       </section>
       {!edit && <BottomButton label="다음" onClick={() => go("terms")} />}
-      {modal && (
+      {modal && canAddContact && (
         <div className="modal-layer">
-          <ContactModal go={go} onAddContact={onAddContact} />
+          <ContactModal
+            go={go}
+            contact={fixedEmergencyContacts[contacts.length]}
+            onAddContact={onAddContact}
+          />
         </div>
       )}
     </Canvas>
@@ -114,48 +102,16 @@ function ContactCard({ contact }: { contact: EmergencyContact }) {
 
 function ContactModal({
   go,
+  contact,
   onAddContact,
 }: {
   go: Go;
+  contact: FixedEmergencyContact;
   onAddContact: (contact: Omit<EmergencyContact, "id">) => void;
 }) {
-  const [name, setName] = useState("");
-  const [relation, setRelation] = useState("");
-  const [phone, setPhone] = useState("");
-  const [nameError, setNameError] = useState(false);
-  const [phoneError, setPhoneError] = useState(false);
-
   const addContact = () => {
-    const hasNameError = name.trim().length === 0;
-    const hasPhoneError = !isValidPhoneNumber(phone);
-
-    setNameError(hasNameError);
-    setPhoneError(hasPhoneError);
-
-    if (hasNameError || hasPhoneError) {
-      return;
-    }
-
-    onAddContact({
-      name: name.trim(),
-      relation: relation.trim() || "관계",
-      phone,
-    });
+    onAddContact(contact);
     go("contacts");
-  };
-
-  const changeName = (value: string) => {
-    setName(value);
-    if (nameError) {
-      setNameError(false);
-    }
-  };
-
-  const changePhone = (value: string) => {
-    setPhone(formatPhoneInput(value));
-    if (phoneError) {
-      setPhoneError(false);
-    }
   };
 
   return (
@@ -169,19 +125,9 @@ function ContactModal({
         <span />
         <span />
       </button>
-      <ModalField
-        label="이름"
-        value={name}
-        onChange={changeName}
-        error={nameError ? "이름을 빈칸으로 둘 수 없습니다." : undefined}
-      />
-      <ModalField label="관계" value={relation} onChange={setRelation} />
-      <ModalField
-        label="전화번호"
-        value={phone}
-        onChange={changePhone}
-        error={phoneError ? "전화번호의 형식이 올바르지 않습니다." : undefined}
-      />
+      <ModalField label="이름" value={contact.name} />
+      <ModalField label="관계" value={contact.relation} />
+      <ModalField label="전화번호" value={contact.phone} />
       <div className="contact-modal-actions">
         <FeedbackButton
           className="contact-action-button"
@@ -257,19 +203,14 @@ function FeedbackButton({
 function ModalField({
   label,
   value,
-  onChange,
-  error,
 }: {
   label: string;
   value: string;
-  onChange: (value: string) => void;
-  error?: string;
 }) {
   return (
-    <label className={`modal-field ${error ? "error" : ""}`}>
+    <label className="modal-field">
       <span>{label}</span>
-      <input value={value} onChange={(event) => onChange(event.target.value)} />
-      {error && <small>{error}</small>}
+      <input value={value} readOnly />
     </label>
   );
 }

@@ -40,8 +40,7 @@ export function BottomDrawer({ screen }: BottomDrawerProps) {
             <br />
             <br />
             긴급 호출 기능(긴급 SOS 기능)은 SafeCall 과 별개로 항상 작동되니
-            실수로 실행시키지 않도록 주의해 주십시오. 긴급 문자 보내기 기능은
-            앱 실행중에만 실행 가능합니다.
+            실수로 실행시키지 않도록 주의해 주십시오.
           </p>
         </div>
       </section>

@@ -1,8 +1,6 @@
 ﻿import type { ReactNode } from "react";
 
 export type RequirementErrorMessageKey =
-  | "kakaoLoginFailed"
-  | "oauthCallbackFailed"
   | "requiredUserInfoMissing"
   | "contactPhoneInvalid"
   | "emergencyContactMissing"
@@ -46,17 +44,9 @@ export const requirementErrorMessages: Record<
   RequirementErrorMessageKey,
   RequirementErrorMessage
 > = {
-  kakaoLoginFailed: {
-    title: "카카오 로그인에 실패하였습니다.",
-    description: "네트워크 연결을 확인하시고 다시 시도해주세요.",
-  },
-  oauthCallbackFailed: {
-    title: "로그인 결과를 확인할 수 없습니다.",
-    description: "인증 정보를 저장하지 않았습니다. 로그인 화면에서 다시 시도해주세요.",
-  },
   requiredUserInfoMissing: {
     title: "필수 사용자 정보를 확인할 수 없습니다.",
-    description: "이름 또는 전화번호 정보를 다시 확인하거나 카카오 동의를 다시 진행해주세요.",
+    description: "가상 회원가입을 처음부터 다시 진행해주세요.",
   },
   contactPhoneInvalid: {
     title: "전화번호 형식이 올바르지 않습니다.",
@@ -172,7 +162,7 @@ export const requirementErrorMessages: Record<
   },
   browserChanged: {
     title: "계정 확인이 필요합니다.",
-    description: "새 브라우저 또는 기기에서는 카카오 로그인을 다시 진행해야 할 수 있습니다.",
+    description: "새 브라우저 또는 기기에서는 가상 회원가입을 다시 진행해야 할 수 있습니다.",
   },
   unavailableCallControl: {
     title: "제공되지 않는 기능입니다.",
