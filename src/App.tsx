@@ -314,11 +314,15 @@ export default function App() {
     Promise.all([
       getHome(controller.signal),
       getCallOptions(callOptionsCacheRef.current ?? undefined, controller.signal),
+      session.settingsMode === "MEMBER"
+        ? getSettings(controller.signal)
+        : Promise.resolve(null),
     ])
-      .then(([nextHome, nextOptions]) => {
+      .then(([nextHome, nextOptions, nextSetting]) => {
         setHomeData(nextHome);
         setCallOptions(nextOptions.data);
         callOptionsCacheRef.current = nextOptions;
+        if (nextSetting) setSetting(nextSetting);
       })
       .catch((error: unknown) => {
         if (!(error instanceof DOMException && error.name === "AbortError")) showApiError(error);
@@ -825,6 +829,7 @@ export default function App() {
               <CallRinging
                 go={(nextScreen) => replaceScreen(nextScreen)}
                 displayName={displayName}
+                playRingtone={setting?.incomingAlertMode !== "SILENT"}
                 onShown={() => sendEvent("RINGING_SHOWN", { swallowError: true })}
                 onAnswer={() => sendEvent("ANSWERED")}
                 onDecline={() => handleEndCall("DECLINED")}

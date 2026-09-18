@@ -1,7 +1,8 @@
 ﻿import "./styles/Call.css";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { MdCall, MdCallEnd } from "react-icons/md";
 import father from "../assets/figma/raw-image-1.jpeg";
+import incomingRingtone from "../assets/audio/zapsplat_multimedia_ringtone_smartphone_mallets_musical_004_107249.mp3";
 import { Canvas } from "../components/Canvas";
 import { Icon } from "../components/Icon";
 import type { Go } from "../types";
@@ -14,19 +15,63 @@ export function CallRinging({
   onShown,
   onAnswer,
   onDecline,
+  playRingtone,
 }: {
   go: Go;
   displayName: string;
   onShown: () => Promise<void>;
   onAnswer: () => Promise<void>;
   onDecline: () => Promise<void>;
+  playRingtone: boolean;
 }) {
   const [answering, setAnswering] = useState(false);
   const [busy, setBusy] = useState(false);
+  const ringtoneRef = useRef<HTMLAudioElement | null>(null);
+
+  const stopRingtone = useCallback(() => {
+    const ringtone = ringtoneRef.current;
+    if (!ringtone) return;
+    ringtone.pause();
+    ringtone.currentTime = 0;
+    ringtoneRef.current = null;
+  }, []);
 
   useEffect(() => {
     void onShown();
   }, [onShown]);
+
+  useEffect(() => {
+    if (!playRingtone) return;
+
+    const ringtone = new Audio(incomingRingtone);
+    ringtone.loop = true;
+    ringtone.preload = "auto";
+    ringtone.volume = 0.7;
+    ringtoneRef.current = ringtone;
+
+    void ringtone.play().catch(() => {
+      if (ringtoneRef.current === ringtone) {
+        ringtoneRef.current = null;
+      }
+    });
+
+    const stopOnPageExit = () => stopRingtone();
+    const stopWhenHidden = () => {
+      if (document.visibilityState === "hidden") stopRingtone();
+    };
+
+    window.addEventListener("pagehide", stopOnPageExit);
+    document.addEventListener("visibilitychange", stopWhenHidden);
+    return () => {
+      window.removeEventListener("pagehide", stopOnPageExit);
+      document.removeEventListener("visibilitychange", stopWhenHidden);
+      ringtone.pause();
+      ringtone.currentTime = 0;
+      if (ringtoneRef.current === ringtone) {
+        ringtoneRef.current = null;
+      }
+    };
+  }, [playRingtone, stopRingtone]);
 
   useEffect(() => {
     if (!answering) {
@@ -63,6 +108,7 @@ export function CallRinging({
           aria-label="통화 받기"
           disabled={answering || busy}
           onClick={() => {
+            stopRingtone();
             setBusy(true);
             void onAnswer()
               .then(() => setAnswering(true))
@@ -77,6 +123,7 @@ export function CallRinging({
           aria-label="통화 거절"
           disabled={answering || busy}
           onClick={() => {
+            stopRingtone();
             setBusy(true);
             void onDecline().finally(() => {
               setBusy(false);
