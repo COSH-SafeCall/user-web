@@ -9,8 +9,16 @@ import {
 import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
 import type { Go, Screen } from "../types";
+import { requestLocationPermission } from "../utils/browserPermissions";
 
 type MessageLoadState = "loading" | "success" | "error";
+type LocationCompositionStatus =
+  | "included"
+  | "permission-denied"
+  | "template-unavailable"
+  | "unsupported-coordinate-system"
+  | "accuracy-insufficient"
+  | "unavailable";
 
 type MessageErrorView = {
   title: string;
@@ -76,36 +84,198 @@ function getMessageErrorView(error: unknown): MessageErrorView {
   );
 }
 
+function getLocationStatusMessage(status: LocationCompositionStatus) {
+  const messages: Record<LocationCompositionStatus, string> = {
+    included: "현재 위치 좌표를 지도 링크에 적용했습니다.",
+    "permission-denied":
+      "위치 권한이 허용되지 않아 API 메시지 본문만 사용합니다.",
+    "template-unavailable":
+      "사용 가능한 지도 템플릿이 없어 API 메시지 본문만 사용합니다.",
+    "unsupported-coordinate-system":
+      "지원하지 않는 좌표계라 API 메시지 본문만 사용합니다.",
+    "accuracy-insufficient":
+      "위치 정확도가 지도 템플릿 기준을 충족하지 않아 API 메시지 본문만 사용합니다.",
+    unavailable:
+      "현재 위치를 확인하지 못해 API 메시지 본문만 사용합니다.",
+  };
+
+  return messages[status];
+}
+
+function findCoordinateUrlTemplate(value: string) {
+  const rawTemplate = value.trim();
+  const markdownLabel = /^\[([^\]]+)\]/.exec(rawTemplate)?.[1];
+  const markdownDestination = /\]\(([^)]+)\)$/.exec(rawTemplate)?.[1];
+  const candidates = [markdownDestination, markdownLabel, rawTemplate];
+
+  return candidates.find(
+    (candidate) =>
+      candidate?.includes("{latitude}") &&
+      candidate.includes("{longitude}"),
+  );
+}
+
+function completeMapUrl(
+  urlTemplate: string,
+  latitude: number,
+  longitude: number,
+) {
+  const coordinateTemplate = findCoordinateUrlTemplate(urlTemplate);
+  if (!coordinateTemplate) return null;
+
+  const completed = coordinateTemplate
+    .replaceAll("{latitude}", String(latitude))
+    .replaceAll("{longitude}", String(longitude));
+
+  try {
+    const url = new URL(completed);
+    return url.protocol === "https:" ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+async function composeEmergencyMessage(composer: MessageComposerView) {
+  const baseBody = composer.baseBody ?? "";
+  const mapTemplate = composer.mapTemplate;
+
+  if (!composer.isLocationPermissionGranted) {
+    return {
+      message: baseBody,
+      locationStatus: "permission-denied" as const,
+    };
+  }
+
+  if (!mapTemplate?.urlTemplate) {
+    return {
+      message: baseBody,
+      locationStatus: "template-unavailable" as const,
+    };
+  }
+
+  if (mapTemplate.coordinateSystem?.toUpperCase() !== "WGS84") {
+    return {
+      message: baseBody,
+      locationStatus: "unsupported-coordinate-system" as const,
+    };
+  }
+
+  const maxAgeMs =
+    typeof mapTemplate.maxAgeSeconds === "number"
+      ? Math.max(0, mapTemplate.maxAgeSeconds * 1000)
+      : null;
+  const maxAccuracyMeters =
+    typeof mapTemplate.maxAccuracyMeters === "number"
+      ? Math.max(0, mapTemplate.maxAccuracyMeters)
+      : null;
+  let location = await requestLocationPermission({
+    enableHighAccuracy: false,
+    maximumAge: maxAgeMs ?? 60000,
+    timeout: 30000,
+  });
+
+  const needsMoreAccurateLocation = () => {
+    if (!location.coords || location.timestamp === undefined) return false;
+    const isTooOld =
+      maxAgeMs !== null &&
+      maxAgeMs > 0 &&
+      Date.now() - location.timestamp > maxAgeMs;
+    const isTooInaccurate =
+      maxAccuracyMeters !== null &&
+      location.coords.accuracy > maxAccuracyMeters;
+    return isTooOld || isTooInaccurate;
+  };
+
+  if (location.granted && needsMoreAccurateLocation()) {
+    location = await requestLocationPermission({
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 30000,
+    });
+  }
+
+  if (!location.granted || !location.coords) {
+    return {
+      message: baseBody,
+      locationStatus:
+        location.reason === "denied"
+          ? ("permission-denied" as const)
+          : ("unavailable" as const),
+    };
+  }
+
+  if (needsMoreAccurateLocation()) {
+    return {
+      message: baseBody,
+      locationStatus: "accuracy-insufficient" as const,
+    };
+  }
+
+  const mapUrl = completeMapUrl(
+    mapTemplate.urlTemplate,
+    location.coords.latitude,
+    location.coords.longitude,
+  );
+
+  if (!mapUrl) {
+    return {
+      message: baseBody,
+      locationStatus: "template-unavailable" as const,
+    };
+  }
+
+  return {
+    message: baseBody ? `${baseBody}\n${mapUrl}` : mapUrl,
+    locationStatus: "included" as const,
+  };
+}
+
 export function EmergencyMessage({ go }: { go: Go }) {
   const [loadState, setLoadState] = useState<MessageLoadState>("loading");
   const [composer, setComposer] = useState<MessageComposerView | null>(null);
   const [loadError, setLoadError] = useState<unknown>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [message, setMessage] = useState("");
+  const [locationStatus, setLocationStatus] =
+    useState<LocationCompositionStatus>("unavailable");
   const [showDemoNotice, setShowDemoNotice] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
+    let disposed = false;
 
     setLoadState("loading");
     setLoadError(null);
+    setComposer(null);
+    setMessage("");
 
-    getSafetyMessageComposer(controller.signal)
-      .then((result) => {
+    const loadMessage = async () => {
+      try {
+        const result = await getSafetyMessageComposer(controller.signal);
+        const composed = await composeEmergencyMessage(result);
+        if (disposed) return;
+
         setComposer(result);
-        setMessage(result.baseBody ?? "");
+        setMessage(composed.message);
+        setLocationStatus(composed.locationStatus);
         setLoadState("success");
-      })
-      .catch((error: unknown) => {
+      } catch (error: unknown) {
         if (error instanceof DOMException && error.name === "AbortError") {
           return;
         }
+        if (disposed) return;
 
         setLoadError(error);
         setLoadState("error");
-      });
+      }
+    };
 
-    return () => controller.abort();
+    void loadMessage();
+
+    return () => {
+      disposed = true;
+      controller.abort();
+    };
   }, [retryCount]);
 
   const errorView = getMessageErrorView(loadError);
@@ -170,11 +340,7 @@ export function EmergencyMessage({ go }: { go: Go }) {
             </p>
             <div className="message-location-preview">
               <MdLocationOn aria-hidden="true" />
-              <span>
-                {composer.isLocationPermissionGranted
-                  ? "위치 권한이 확인되었습니다. 전송 단계에서 위치 링크를 구성합니다."
-                  : "위치 권한이 없어 위치 링크 없이 메시지를 작성합니다."}
-              </span>
+              <span>{getLocationStatusMessage(locationStatus)}</span>
             </div>
           </section>
 

@@ -9,7 +9,9 @@ export type LocationPermissionRequestResult = PermissionRequestResult & {
   coords?: {
     latitude: number;
     longitude: number;
+    accuracy: number;
   };
+  timestamp?: number;
 };
 
 export type BrowserPermissionState = PermissionState | "unsupported" | "unknown";
@@ -75,7 +77,9 @@ export async function getLocationPermissionState(): Promise<BrowserPermissionSta
   }
 }
 
-export async function requestLocationPermission(): Promise<LocationPermissionRequestResult> {
+export async function requestLocationPermission(
+  options: PositionOptions = {},
+): Promise<LocationPermissionRequestResult> {
   if (!navigator.geolocation) {
     return {
       granted: false,
@@ -91,7 +95,9 @@ export async function requestLocationPermission(): Promise<LocationPermissionReq
           coords: {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
           },
+          timestamp: position.timestamp,
         });
       },
       async (error) => {
@@ -112,6 +118,7 @@ export async function requestLocationPermission(): Promise<LocationPermissionReq
         enableHighAccuracy: false,
         maximumAge: 60000,
         timeout: 30000,
+        ...options,
       },
     );
   });
