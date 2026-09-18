@@ -7,19 +7,15 @@ import { Canvas } from "../components/Canvas";
 import { Icon } from "../components/Icon";
 import type { Go } from "../types";
 
-const CALL_ANSWER_TRANSITION_MS = 480;
-
 export function CallRinging({
   go,
   displayName,
-  onShown,
   onAnswer,
   onDecline,
   playRingtone,
 }: {
   go: Go;
   displayName: string;
-  onShown: () => Promise<void>;
   onAnswer: () => Promise<void>;
   onDecline: () => Promise<void>;
   playRingtone: boolean;
@@ -35,10 +31,6 @@ export function CallRinging({
     ringtone.currentTime = 0;
     ringtoneRef.current = null;
   }, []);
-
-  useEffect(() => {
-    void onShown();
-  }, [onShown]);
 
   useEffect(() => {
     if (!playRingtone) return;
@@ -73,20 +65,6 @@ export function CallRinging({
     };
   }, [playRingtone, stopRingtone]);
 
-  useEffect(() => {
-    if (!answering) {
-      return;
-    }
-
-    const timerId = window.setTimeout(() => {
-      go("call");
-    }, CALL_ANSWER_TRANSITION_MS);
-
-    return () => {
-      window.clearTimeout(timerId);
-    };
-  }, [answering, go]);
-
   return (
     <Canvas
       className={`call-gradient call-ringing ${answering ? "answering" : ""}`}
@@ -110,9 +88,9 @@ export function CallRinging({
           onClick={() => {
             stopRingtone();
             setBusy(true);
+            setAnswering(true);
             void onAnswer()
-              .then(() => setAnswering(true))
-              .catch(() => undefined)
+              .catch(() => setAnswering(false))
               .finally(() => setBusy(false));
           }}
         >

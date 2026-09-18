@@ -110,7 +110,8 @@ export type CallEndReason =
   | "TAB_HIDDEN"
   | "PAGE_EXIT"
   | "PAGE_RELOAD"
-  | "SWITCH_TO_FALLBACK";
+  | "SWITCH_TO_FALLBACK"
+  | "DURATION_LIMIT";
 
 export type CallView = {
   id: string;

@@ -13,7 +13,11 @@ type GeminiLiveCallbacks = {
 
 export type GeminiLiveConnection = {
   close: () => void;
+  finishDemo: () => Promise<void>;
 };
+
+const DEMO_CLOSING_SIGNAL = "[SAFECALL_DEMO_CLOSING]";
+const DEMO_CLOSING_TIMEOUT_MS = 12_000;
 
 function float32ToPcm16Base64(samples: Float32Array) {
   const pcm = new Int16Array(samples.length);
@@ -58,21 +62,43 @@ export async function connectGeminiLive(
   silentGain.gain.value = 0;
   let session: Session | null = null;
   let closed = false;
+  let inputStopped = false;
+  let finishing = false;
+  let finishPromise: Promise<void> | null = null;
+  let resolveFinish: (() => void) | null = null;
+  let finishTimeout: number | null = null;
+  let playbackFinishTimeout: number | null = null;
   let nextOutputAt = outputContext.currentTime;
   const outputSources = new Set<AudioBufferSourceNode>();
 
-  const closeResources = () => {
-    if (closed) return;
-    closed = true;
+  const stopInput = () => {
+    if (inputStopped) return;
+    inputStopped = true;
     processor.disconnect();
     inputSource.disconnect();
     silentGain.disconnect();
     inputStream.getTracks().forEach((track) => track.stop());
+  };
+
+  const closeResources = () => {
+    if (closed) return;
+    closed = true;
+    stopInput();
+    if (finishTimeout !== null) window.clearTimeout(finishTimeout);
+    if (playbackFinishTimeout !== null) window.clearTimeout(playbackFinishTimeout);
     outputSources.forEach((source) => source.stop());
     outputSources.clear();
     session?.close();
     void inputContext.close();
     void outputContext.close();
+    resolveFinish?.();
+    resolveFinish = null;
+  };
+
+  const finishAfterPlayback = () => {
+    if (!finishing || closed || playbackFinishTimeout !== null) return;
+    const remainingMs = Math.max(0, nextOutputAt - outputContext.currentTime) * 1000;
+    playbackFinishTimeout = window.setTimeout(closeResources, remainingMs + 120);
   };
 
   const playAudio = (message: LiveServerMessage) => {
@@ -99,6 +125,8 @@ export async function connectGeminiLive(
       outputSources.clear();
       nextOutputAt = outputContext.currentTime;
     }
+
+    if (message.serverContent?.turnComplete) finishAfterPlayback();
   };
 
   try {
@@ -128,7 +156,7 @@ export async function connectGeminiLive(
     });
 
     processor.onaudioprocess = (event) => {
-      if (!session || closed) return;
+      if (!session || closed || finishing) return;
       const channel = event.inputBuffer.getChannelData(0);
       session.sendRealtimeInput({
         audio: {
@@ -141,7 +169,28 @@ export async function connectGeminiLive(
     processor.connect(silentGain);
     silentGain.connect(inputContext.destination);
 
-    return { close: closeResources };
+    const finishDemo = () => {
+      if (finishPromise) return finishPromise;
+      if (closed || !session) return Promise.resolve();
+
+      finishing = true;
+      stopInput();
+      finishPromise = new Promise<void>((resolve) => {
+        resolveFinish = resolve;
+        finishTimeout = window.setTimeout(closeResources, DEMO_CLOSING_TIMEOUT_MS);
+        try {
+          session?.sendClientContent({
+            turns: [{ role: "user", parts: [{ text: DEMO_CLOSING_SIGNAL }] }],
+            turnComplete: true,
+          });
+        } catch {
+          closeResources();
+        }
+      });
+      return finishPromise;
+    };
+
+    return { close: closeResources, finishDemo };
   } catch (error) {
     closeResources();
     throw error;

@@ -46,11 +46,10 @@ import {
 } from "./api/callApi";
 import { getDeletion, requestAccountDeletion } from "./api/deletionApi";
 import { createCallPageKey, toUserMessage } from "./api/httpClient";
+import type { GeminiLiveConnection } from "./api/geminiLive";
 import { fixedUserProfile, type FixedEmergencyContact } from "./fixedUserData";
 import type {
   CallEndReason,
-  CallEventType,
-  CallFailureCode,
   CallOptionsView,
   CallStartMode,
   CallView,
@@ -70,16 +69,23 @@ import type {
 } from "./api/contracts";
 import type { Go, Screen } from "./types";
 
-type GeminiLiveConnection = { close: () => void };
-
 type ScreenFlow = "onboarding" | "home" | "setting" | "help";
 type ScreenTransition = "same-flow" | "flow-change";
+type PendingCall = {
+  clientCallId: string;
+  callPageKey: string;
+  startMode: CallStartMode;
+  scenarioCode: ScenarioCode;
+  counterpartCode: CounterpartCode;
+};
 type SafeCallHistoryState = {
   safeCall?: {
     screen: Screen;
     previousScreen: Screen | null;
   };
 };
+
+const DEMO_CLOSING_LEAD_MS = 15_000;
 
 const validScreens = new Set<Screen>([...screenOrder, "terms"]);
 
@@ -159,12 +165,14 @@ export default function App() {
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [initializing, setInitializing] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [isDurationLimitNoticeOpen, setIsDurationLimitNoticeOpen] =
+    useState(false);
   const callOptionsCacheRef = useRef<{
     etag: string;
     data: CallOptionsView;
   } | null>(null);
   const callPageKeyRef = useRef("");
-  const reportedEventsRef = useRef(new Set<string>());
+  const pendingCallRef = useRef<PendingCall | null>(null);
   const liveConnectionRef = useRef<GeminiLiveConnection | null>(null);
   const terminatingCallRef = useRef(false);
   const screenRef = useRef<Screen>("login");
@@ -581,102 +589,121 @@ export default function App() {
     }
   };
 
-  const startCall = async (
+  const showIncomingCall = async (
     startMode: CallStartMode,
     selectedScenario: ScenarioCode,
     selectedCounterpart: CounterpartCode,
   ) => {
     if (!session?.csrfToken || busyAction) return;
-    setBusyAction("call");
-    callPageKeyRef.current = createCallPageKey();
     terminatingCallRef.current = false;
-    reportedEventsRef.current.clear();
     liveConnectionRef.current?.close();
     liveConnectionRef.current = null;
+    setActiveCall(null);
+    setScenarioCode(selectedScenario);
+    setCounterpartCode(selectedCounterpart);
+    pendingCallRef.current = {
+      clientCallId: crypto.randomUUID(),
+      callPageKey: createCallPageKey(),
+      startMode,
+      scenarioCode: selectedScenario,
+      counterpartCode: selectedCounterpart,
+    };
+    replaceScreen("callRinging");
+  };
+
+  const handleAnswerIncomingCall = async () => {
+    const pending = pendingCallRef.current;
+    if (!pending || !session?.csrfToken || busyAction) return;
+    setBusyAction("call");
+    callPageKeyRef.current = pending.callPageKey;
     try {
       const created = await createCall(
-        { csrfToken: session.csrfToken, callPageKey: callPageKeyRef.current },
+        { csrfToken: session.csrfToken, callPageKey: pending.callPageKey },
         {
-          clientCallId: crypto.randomUUID(),
-          startMode,
-          scenarioCode: selectedScenario,
-          counterpartCode: selectedCounterpart,
+          clientCallId: pending.clientCallId,
+          startMode: pending.startMode,
+          scenarioCode: pending.scenarioCode,
+          counterpartCode: pending.counterpartCode,
           microphonePermission: "GRANTED",
         },
       );
-      setScenarioCode(selectedScenario);
-      setCounterpartCode(selectedCounterpart);
       setActiveCall(created);
-      go("voiceLoading");
+      replaceScreen("voiceLoading");
     } catch (error) {
       showApiError(error);
+      throw error;
     } finally {
       setBusyAction(null);
     }
   };
 
-  const sendEvent = useCallback(
-    async (
-      type: CallEventType,
-      options: {
-        grantId?: string | null;
-        errorCode?: CallFailureCode | null;
-        swallowError?: boolean;
-      } = {},
-    ) => {
-      if (!activeCall || !session?.csrfToken) return;
-      const eventKey = `${activeCall.id}:${type}`;
-      if (reportedEventsRef.current.has(eventKey)) return;
-      reportedEventsRef.current.add(eventKey);
-      try {
-        setActiveCall(
-          await sendCallEvent(
-            {
-              csrfToken: session.csrfToken,
-              callPageKey: callPageKeyRef.current,
-            },
-            activeCall.id,
-            {
-              type,
-              grantId: options.grantId ?? null,
-              errorCode: options.errorCode ?? null,
-              expectedVersion: activeCall.version,
-            },
-          ),
-        );
-      } catch (error) {
-        reportedEventsRef.current.delete(eventKey);
-        showApiError(error);
-        if (!options.swallowError) throw error;
-      }
-    },
-    [activeCall, session?.csrfToken, showApiError],
-  );
+  const handleDeclineIncomingCall = async () => {
+    pendingCallRef.current = null;
+    setActiveCall(null);
+  };
 
   const handleConnected = useCallback(
     async (readyConnection: ConnectionView) => {
+      if (!activeCall || !session?.csrfToken) {
+        throw new Error("통화 세션이 필요합니다.");
+      }
+      let currentCall = activeCall;
+      const security = {
+        csrfToken: session.csrfToken,
+        callPageKey: callPageKeyRef.current,
+      };
       try {
         const { connectGeminiLive } = await import("./api/geminiLive");
         liveConnectionRef.current = await connectGeminiLive(readyConnection, {
           onError: (error) => showApiError(error),
         });
-        await sendEvent("CONNECTED", { grantId: readyConnection.grantId });
-        replaceScreen("callRinging");
-      } catch (error) {
-        showApiError(error);
-        await sendEvent("FAILED", {
-          errorCode: "CONNECTION_FAILED",
-          swallowError: true,
+        currentCall = await sendCallEvent(security, currentCall.id, {
+          type: "CONNECTED",
+          grantId: readyConnection.grantId,
+          errorCode: null,
+          expectedVersion: currentCall.version,
         });
+        currentCall = await sendCallEvent(security, currentCall.id, {
+          type: "RINGING_SHOWN",
+          grantId: null,
+          errorCode: null,
+          expectedVersion: currentCall.version,
+        });
+        currentCall = await sendCallEvent(security, currentCall.id, {
+          type: "ANSWERED",
+          grantId: null,
+          errorCode: null,
+          expectedVersion: currentCall.version,
+        });
+        pendingCallRef.current = null;
+        setActiveCall(currentCall);
+        replaceScreen("call");
+      } catch (error) {
+        liveConnectionRef.current?.close();
+        liveConnectionRef.current = null;
+        showApiError(error);
+        try {
+          setActiveCall(
+            await sendCallEvent(security, currentCall.id, {
+              type: "FAILED",
+              grantId: null,
+              errorCode: "CONNECTION_FAILED",
+              expectedVersion: currentCall.version,
+            }),
+          );
+        } catch {
+          setActiveCall(currentCall);
+        }
         throw error;
       }
     },
-    [replaceScreen, sendEvent, showApiError],
+    [activeCall, replaceScreen, session?.csrfToken, showApiError],
   );
 
   const handleEndCall = async (reason: CallEndReason) => {
     if (!activeCall || !session?.csrfToken) return;
     terminatingCallRef.current = true;
+    pendingCallRef.current = null;
     liveConnectionRef.current?.close();
     liveConnectionRef.current = null;
     try {
@@ -693,6 +720,50 @@ export default function App() {
       setActiveCall(null);
     }
   };
+
+  useEffect(() => {
+    if (
+      screen !== "call" ||
+      !activeCall ||
+      !session?.csrfToken ||
+      !liveConnectionRef.current ||
+      activeCall.state !== "ACTIVE"
+    ) {
+      return;
+    }
+
+    const callId = activeCall.id;
+    const callPageKey = callPageKeyRef.current;
+    const delayMs = Math.max(
+      0,
+      Date.parse(activeCall.expiresAt) - Date.now() - DEMO_CLOSING_LEAD_MS,
+    );
+    const timer = window.setTimeout(() => {
+      if (terminatingCallRef.current) return;
+      const connection = liveConnectionRef.current;
+      if (!connection) return;
+      terminatingCallRef.current = true;
+
+      void connection.finishDemo().then(async () => {
+        liveConnectionRef.current = null;
+        try {
+          await endCall(
+            { csrfToken: session.csrfToken, callPageKey },
+            callId,
+            "DURATION_LIMIT",
+          );
+        } catch {
+          // 최준혁: 서버 상한이 먼저 만료돼도 사용자에게는 정상 체험 종료로 안내한다.
+        } finally {
+          setActiveCall(null);
+          replaceScreen("home", true);
+          setIsDurationLimitNoticeOpen(true);
+        }
+      });
+    }, delayMs);
+
+    return () => window.clearTimeout(timer);
+  }, [activeCall, replaceScreen, screen, session?.csrfToken]);
 
   const handleSettingChange = async (mode: IncomingAlertMode) => {
     if (!session?.csrfToken || !setting) return;
@@ -756,7 +827,13 @@ export default function App() {
   };
 
   const userName = profile?.name ?? fixedUserProfile.name;
-  const displayName = activeCall?.displayName ?? "아빠";
+  const displayName =
+    activeCall?.displayName ??
+    callOptions?.counterparts.find((option) => option.code === counterpartCode)
+      ?.displayName ??
+    ({ FATHER: "아빠", MOTHER: "엄마", FRIEND: "친구" } as const)[
+      counterpartCode
+    ];
 
   if (initializing) {
     return <div className="app-root" aria-label="세션 확인 중" />;
@@ -805,7 +882,7 @@ export default function App() {
               <CallSetupCheck
                 go={go}
                 busy={busyAction === "call"}
-                onStart={() => startCall("STANDARD", scenarioCode, counterpartCode)}
+                onStart={() => showIncomingCall("STANDARD", scenarioCode, counterpartCode)}
               />
             )}
             {screen === "voiceLoading" && (
@@ -818,7 +895,7 @@ export default function App() {
                 callOptions={callOptions}
                 onRegularStart={() => go("personaUse")}
                 onQuickStart={(selectedScenario) =>
-                  void startCall("QUICK", selectedScenario, callOptions?.quickStart.counterpartCode ?? "FATHER")
+                  void showIncomingCall("QUICK", selectedScenario, callOptions?.quickStart.counterpartCode ?? "FATHER")
                 }
                 onEmergencyMessage={openEmergencyMessage}
               />
@@ -830,9 +907,8 @@ export default function App() {
                 go={(nextScreen) => replaceScreen(nextScreen)}
                 displayName={displayName}
                 playRingtone={setting?.incomingAlertMode !== "SILENT"}
-                onShown={() => sendEvent("RINGING_SHOWN", { swallowError: true })}
-                onAnswer={() => sendEvent("ANSWERED")}
-                onDecline={() => handleEndCall("DECLINED")}
+                onAnswer={handleAnswerIncomingCall}
+                onDecline={handleDeclineIncomingCall}
               />
             )}
             {screen === "call" && (
@@ -892,6 +968,15 @@ export default function App() {
                 title="요청을 완료하지 못했습니다."
                 description={apiError}
                 onConfirm={() => setApiError(null)}
+              />
+            </div>
+          )}
+          {isDurationLimitNoticeOpen && (
+            <div className="modal-layer">
+              <ErrorMessage
+                title="체험 통화가 종료되었습니다."
+                description="약 1분의 체험 통화가 종료되었습니다. 홈 화면에서 새 통화를 시작할 수 있습니다."
+                onConfirm={() => setIsDurationLimitNoticeOpen(false)}
               />
             </div>
           )}
