@@ -11,16 +11,24 @@ import {
   MdWifiOff,
 } from "react-icons/md";
 import { PiCassetteTapeFill } from "react-icons/pi";
-import alternativeCallAudio from "../assets/audio/alternative-call.wav";
+import fatherAlternativeCallAudio from "../assets/audio/SafeCall_대체통화 - 아빠.mp3";
+import friendAlternativeCallAudio from "../assets/audio/SafeCall_대체통화_-_친구.mp3";
+import motherAlternativeCallAudio from "../assets/audio/SafeCall_대체통화_-_엄마.mp3";
 import { Canvas } from "../components/Canvas";
 import { RequirementErrorMessage } from "../components/RequirementErrorMessage";
-import type { CallEndReason } from "../api/contracts";
+import type { CallEndReason, CounterpartCode } from "../api/contracts";
 import type { Go } from "../types";
 
 type CallAction = {
   icon: IconType;
   iconClass: string;
   label: string;
+};
+
+const alternativeCallAudioByCounterpart: Record<CounterpartCode, string> = {
+  FATHER: fatherAlternativeCallAudio,
+  MOTHER: motherAlternativeCallAudio,
+  FRIEND: friendAlternativeCallAudio,
 };
 
 function formatCallTime(elapsedSeconds: number) {
@@ -35,11 +43,13 @@ function formatCallTime(elapsedSeconds: number) {
 export function Call({
   go,
   displayName,
+  counterpartCode,
   connectedAt,
   onEnd,
 }: {
   go: Go;
   displayName: string;
+  counterpartCode: CounterpartCode;
   connectedAt: number | null;
   onEnd: (reason: CallEndReason) => Promise<void>;
 }) {
@@ -183,7 +193,7 @@ export function Call({
       )}
       <audio
         ref={alternativeAudioRef}
-        src={alternativeCallAudio}
+        src={alternativeCallAudioByCounterpart[counterpartCode]}
         loop
         preload="auto"
       />

@@ -1009,6 +1009,7 @@ export default function App() {
               <Call
                 go={(nextScreen) => replaceScreen(nextScreen)}
                 displayName={displayName}
+                counterpartCode={activeCall?.counterpartCode ?? counterpartCode}
                 connectedAt={callConnectedAt}
                 onEnd={handleEndCall}
               />
