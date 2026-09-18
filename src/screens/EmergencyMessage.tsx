@@ -17,7 +17,6 @@ type LocationCompositionStatus =
   | "permission-denied"
   | "template-unavailable"
   | "unsupported-coordinate-system"
-  | "accuracy-insufficient"
   | "unavailable";
 
 type MessageErrorView = {
@@ -93,8 +92,6 @@ function getLocationStatusMessage(status: LocationCompositionStatus) {
       "사용 가능한 지도 템플릿이 없어 API 메시지 본문만 사용합니다.",
     "unsupported-coordinate-system":
       "지원하지 않는 좌표계라 API 메시지 본문만 사용합니다.",
-    "accuracy-insufficient":
-      "위치 정확도가 지도 템플릿 기준을 충족하지 않아 API 메시지 본문만 사용합니다.",
     unavailable:
       "현재 위치를 확인하지 못해 API 메시지 본문만 사용합니다.",
   };
@@ -164,35 +161,11 @@ async function composeEmergencyMessage(composer: MessageComposerView) {
     typeof mapTemplate.maxAgeSeconds === "number"
       ? Math.max(0, mapTemplate.maxAgeSeconds * 1000)
       : null;
-  const maxAccuracyMeters =
-    typeof mapTemplate.maxAccuracyMeters === "number"
-      ? Math.max(0, mapTemplate.maxAccuracyMeters)
-      : null;
-  let location = await requestLocationPermission({
-    enableHighAccuracy: false,
+  const location = await requestLocationPermission({
+    enableHighAccuracy: true,
     maximumAge: maxAgeMs ?? 60000,
     timeout: 30000,
   });
-
-  const needsMoreAccurateLocation = () => {
-    if (!location.coords || location.timestamp === undefined) return false;
-    const isTooOld =
-      maxAgeMs !== null &&
-      maxAgeMs > 0 &&
-      Date.now() - location.timestamp > maxAgeMs;
-    const isTooInaccurate =
-      maxAccuracyMeters !== null &&
-      location.coords.accuracy > maxAccuracyMeters;
-    return isTooOld || isTooInaccurate;
-  };
-
-  if (location.granted && needsMoreAccurateLocation()) {
-    location = await requestLocationPermission({
-      enableHighAccuracy: true,
-      maximumAge: 0,
-      timeout: 30000,
-    });
-  }
 
   if (!location.granted || !location.coords) {
     return {
@@ -201,13 +174,6 @@ async function composeEmergencyMessage(composer: MessageComposerView) {
         location.reason === "denied"
           ? ("permission-denied" as const)
           : ("unavailable" as const),
-    };
-  }
-
-  if (needsMoreAccurateLocation()) {
-    return {
-      message: baseBody,
-      locationStatus: "accuracy-insufficient" as const,
     };
   }
 
