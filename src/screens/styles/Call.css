@@ -7,20 +7,6 @@
   animation: call-ringing-enter 0.32s cubic-bezier(0.22, 0.25, 0, 1) both;
 }
 
-.canvas.call-ringing.answering {
-  pointer-events: none;
-  animation: call-answer-dim 0.48s cubic-bezier(0.22, 0.25, 0, 1) both;
-}
-
-.canvas.call-ringing.answering::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: rgba(0, 0, 0, 0.38);
-  animation: call-answer-overlay 0.48s cubic-bezier(0.22, 0.25, 0, 1) both;
-}
-
 @keyframes call-ringing-enter {
   0% {
     opacity: 0;
@@ -30,26 +16,6 @@
   100% {
     opacity: 1;
     filter: brightness(1);
-  }
-}
-
-@keyframes call-answer-dim {
-  0% {
-    filter: brightness(1);
-  }
-
-  100% {
-    filter: brightness(0.78);
-  }
-}
-
-@keyframes call-answer-overlay {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
   }
 }
 
@@ -177,32 +143,6 @@
   color: #fff;
 }
 
-.call-ringing.answering .ring-title {
-  animation: ring-title-answer-exit 0.42s cubic-bezier(0.22, 0.25, 0, 1) both;
-}
-
-.call-ringing.answering .ring-warning {
-  animation: ring-warning-answer-exit 0.28s cubic-bezier(0.22, 0.25, 0, 1) both;
-}
-
-.call-ringing.answering .ring-actions {
-  animation: none;
-}
-
-.call-ringing.answering .ring-actions button::after {
-  animation: none;
-  opacity: 0;
-}
-
-.call-ringing.answering .ring-actions .answer {
-  z-index: 3;
-  animation: ring-answer-button-accept 0.48s cubic-bezier(0.2, 0.72, 0.2, 1) both;
-}
-
-.call-ringing.answering .ring-actions .decline {
-  animation: ring-decline-button-exit 0.22s cubic-bezier(0.22, 0.25, 0, 1) both;
-}
-
 @keyframes ring-title-enter {
   0% {
     opacity: 0;
@@ -239,62 +179,6 @@
   }
 }
 
-@keyframes ring-title-answer-exit {
-  0% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-18px) scale(1.025);
-  }
-}
-
-@keyframes ring-warning-answer-exit {
-  0% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(10px);
-  }
-}
-
-@keyframes ring-answer-button-accept {
-  0% {
-    opacity: 1;
-    transform: translateX(0) translateY(0) scale(1);
-    filter: brightness(1);
-  }
-
-  30% {
-    opacity: 1;
-    transform: translateX(14px) translateY(-2px) scale(0.9);
-    filter: brightness(1.1);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateX(138px) translateY(34px) scale(0.58);
-    filter: brightness(0.72);
-  }
-}
-
-@keyframes ring-decline-button-exit {
-  0% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateY(18px) scale(0.88);
-  }
-}
-
 @keyframes ring-button-ripple {
   0% {
     transform: scale(0.9);
@@ -314,6 +198,35 @@
   display: block;
   color: #fff;
   overflow: hidden;
+}
+
+.call-connection-status {
+  position: absolute;
+  top: 44px;
+  left: 28px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: rgba(255, 255, 255, 0.92);
+  animation: call-connection-status-pulse 1.25s ease-in-out infinite;
+}
+
+.call-connection-status svg {
+  width: 24px;
+  height: 24px;
+}
+
+@keyframes call-connection-status-pulse {
+  0%,
+  100% {
+    opacity: 0.28;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 .canvas.call-connected {
@@ -654,15 +567,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .canvas.call-ringing,
-  .canvas.call-ringing.answering,
-  .canvas.call-ringing.answering::after,
   .ring-title,
   .ring-warning,
   .ring-actions,
-  .call-ringing.answering .ring-title,
-  .call-ringing.answering .ring-warning,
-  .call-ringing.answering .ring-actions .answer,
-  .call-ringing.answering .ring-actions .decline,
+  .call-connection-status,
   .canvas.call-connected,
   .canvas.call-ending,
   .canvas.call-ending::after,

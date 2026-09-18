@@ -7,6 +7,7 @@ import {
 import type { ConnectionView } from "./contracts";
 
 type GeminiLiveCallbacks = {
+  onOpen?: () => void;
   onError: (error: unknown) => void;
   onClose?: () => void;
 };
@@ -146,6 +147,7 @@ export async function connectGeminiLive(
         },
       },
       callbacks: {
+        onopen: () => callbacks.onOpen?.(),
         onmessage: playAudio,
         onerror: (event) => callbacks.onError(event.error ?? event),
         onclose: () => {

@@ -97,13 +97,39 @@ function getSafeCallHistoryState(state: unknown) {
   return safeCall;
 }
 
-async function waitForReadyConnection(callId: string, callPageKey: string) {
+function createAbortError() {
+  return new DOMException("통화 연결이 취소되었습니다.", "AbortError");
+}
+
+function waitForRetry(delayMs: number, signal: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    if (signal.aborted) {
+      reject(createAbortError());
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      signal.removeEventListener("abort", handleAbort);
+      resolve();
+    }, delayMs);
+    const handleAbort = () => {
+      window.clearTimeout(timer);
+      reject(createAbortError());
+    };
+    signal.addEventListener("abort", handleAbort, { once: true });
+  });
+}
+
+async function waitForReadyConnection(
+  callId: string,
+  callPageKey: string,
+  signal: AbortSignal,
+) {
   while (true) {
-    const result = await getConnection(callId, callPageKey);
+    if (signal.aborted) throw createAbortError();
+    const result = await getConnection(callId, callPageKey, signal);
     if (result.status === "READY") return result;
-    await new Promise<void>((resolve) => {
-      window.setTimeout(resolve, Math.max(result.retryAfterMs, 100));
-    });
+    await waitForRetry(Math.max(result.retryAfterMs, 100), signal);
   }
 }
 
@@ -166,6 +192,7 @@ export default function App() {
   const [callOptions, setCallOptions] = useState<CallOptionsView | null>(null);
   const [setting, setSetting] = useState<SettingView | null>(null);
   const [activeCall, setActiveCall] = useState<CallView | null>(null);
+  const [callConnectedAt, setCallConnectedAt] = useState<number | null>(null);
   const [deletion, setDeletion] = useState<DeletionView | null>(null);
   const [scenarioCode, setScenarioCode] =
     useState<ScenarioCode>("FOLLOWED");
@@ -185,6 +212,7 @@ export default function App() {
   const callPageKeyRef = useRef("");
   const pendingCallRef = useRef<PendingCall | null>(null);
   const liveConnectionRef = useRef<GeminiLiveConnection | null>(null);
+  const callConnectionAbortRef = useRef<AbortController | null>(null);
   const terminatingCallRef = useRef(false);
   const screenRef = useRef<Screen>("login");
 
@@ -258,8 +286,11 @@ export default function App() {
         const callId = activeCall.id;
         const callPageKey = callPageKeyRef.current;
         terminatingCallRef.current = true;
+        callConnectionAbortRef.current?.abort();
+        callConnectionAbortRef.current = null;
         liveConnectionRef.current?.close();
         liveConnectionRef.current = null;
+        setCallConnectedAt(null);
         setActiveCall(null);
         void endCall(
           { csrfToken: session.csrfToken, callPageKey },
@@ -441,8 +472,11 @@ export default function App() {
     const closeForReason = (reason: "TAB_HIDDEN" | "PAGE_EXIT") => {
       if (terminatingCallRef.current) return;
       terminatingCallRef.current = true;
+      callConnectionAbortRef.current?.abort();
+      callConnectionAbortRef.current = null;
       liveConnectionRef.current?.close();
       liveConnectionRef.current = null;
+      setCallConnectedAt(null);
       setActiveCall(null);
       void endCall(
         { csrfToken: session.csrfToken, callPageKey },
@@ -473,6 +507,8 @@ export default function App() {
 
   useEffect(
     () => () => {
+      callConnectionAbortRef.current?.abort();
+      callConnectionAbortRef.current = null;
       liveConnectionRef.current?.close();
       liveConnectionRef.current = null;
     },
@@ -609,7 +645,10 @@ export default function App() {
     terminatingCallRef.current = false;
     liveConnectionRef.current?.close();
     liveConnectionRef.current = null;
+    callConnectionAbortRef.current?.abort();
+    callConnectionAbortRef.current = null;
     setActiveCall(null);
+    setCallConnectedAt(null);
     setScenarioCode(selectedScenario);
     setCounterpartCode(selectedCounterpart);
     pendingCallRef.current = {
@@ -627,6 +666,9 @@ export default function App() {
     if (!pending || !session?.csrfToken || busyAction) return;
     setBusyAction("call");
     callPageKeyRef.current = pending.callPageKey;
+    const connectionController = new AbortController();
+    callConnectionAbortRef.current?.abort();
+    callConnectionAbortRef.current = connectionController;
     try {
       const created = await createCall(
         { csrfToken: session.csrfToken, callPageKey: pending.callPageKey },
@@ -639,15 +681,21 @@ export default function App() {
         },
       );
       setActiveCall(created);
+      replaceScreen("call");
       const readyConnection = await waitForReadyConnection(
         created.id,
         pending.callPageKey,
+        connectionController.signal,
       );
-      await connectCall(created, readyConnection);
+      await connectCall(created, readyConnection, connectionController.signal);
     } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
       showApiError(error);
       throw error;
     } finally {
+      if (callConnectionAbortRef.current === connectionController) {
+        callConnectionAbortRef.current = null;
+      }
       setBusyAction(null);
     }
   };
@@ -658,7 +706,11 @@ export default function App() {
   };
 
   const connectCall = useCallback(
-    async (call: CallView, readyConnection: ConnectionView) => {
+    async (
+      call: CallView,
+      readyConnection: ConnectionView,
+      signal?: AbortSignal,
+    ) => {
       if (!session?.csrfToken) throw new Error("통화 세션이 필요합니다.");
       let currentCall = call;
       const security = {
@@ -667,9 +719,21 @@ export default function App() {
       };
       try {
         const { connectGeminiLive } = await import("./api/geminiLive");
-        liveConnectionRef.current = await connectGeminiLive(readyConnection, {
-          onError: (error) => showApiError(error),
+        const liveConnection = await connectGeminiLive(readyConnection, {
+          onOpen: () => {
+            if (!signal?.aborted) setCallConnectedAt(Date.now());
+          },
+          onError: (error) => {
+            setCallConnectedAt(null);
+            showApiError(error);
+          },
+          onClose: () => setCallConnectedAt(null),
         });
+        if (signal?.aborted) {
+          liveConnection.close();
+          throw createAbortError();
+        }
+        liveConnectionRef.current = liveConnection;
         currentCall = await sendCallEvent(security, currentCall.id, {
           type: "CONNECTED",
           grantId: readyConnection.grantId,
@@ -690,10 +754,14 @@ export default function App() {
         });
         pendingCallRef.current = null;
         setActiveCall(currentCall);
-        replaceScreen("call");
+        if (screenRef.current !== "call") replaceScreen("call");
       } catch (error) {
+        setCallConnectedAt(null);
         liveConnectionRef.current?.close();
         liveConnectionRef.current = null;
+        if (error instanceof DOMException && error.name === "AbortError") {
+          throw error;
+        }
         try {
           setActiveCall(
             await sendCallEvent(security, currentCall.id, {
@@ -724,8 +792,11 @@ export default function App() {
     if (!activeCall || !session?.csrfToken) return;
     terminatingCallRef.current = true;
     pendingCallRef.current = null;
+    callConnectionAbortRef.current?.abort();
+    callConnectionAbortRef.current = null;
     liveConnectionRef.current?.close();
     liveConnectionRef.current = null;
+    setCallConnectedAt(null);
     try {
       setActiveCall(
         await endCall(
@@ -806,6 +877,9 @@ export default function App() {
       setPermissions([]);
       setHomeData(null);
       setActiveCall(null);
+      setCallConnectedAt(null);
+      callConnectionAbortRef.current?.abort();
+      callConnectionAbortRef.current = null;
       liveConnectionRef.current?.close();
       liveConnectionRef.current = null;
       replaceScreen("login", true);
@@ -935,6 +1009,7 @@ export default function App() {
               <Call
                 go={(nextScreen) => replaceScreen(nextScreen)}
                 displayName={displayName}
+                connectedAt={callConnectedAt}
                 onEnd={handleEndCall}
               />
             )}

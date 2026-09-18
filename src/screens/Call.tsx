@@ -8,6 +8,7 @@ import {
   MdMicOff,
   MdOutlineVideocam,
   MdVolumeUp,
+  MdWifiOff,
 } from "react-icons/md";
 import { PiCassetteTapeFill } from "react-icons/pi";
 import alternativeCallAudio from "../assets/audio/alternative-call.wav";
@@ -34,10 +35,12 @@ function formatCallTime(elapsedSeconds: number) {
 export function Call({
   go,
   displayName,
+  connectedAt,
   onEnd,
 }: {
   go: Go;
   displayName: string;
+  connectedAt: number | null;
   onEnd: (reason: CallEndReason) => Promise<void>;
 }) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -80,14 +83,24 @@ export function Call({
   ];
 
   useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      setElapsedSeconds((current) => current + 1);
-    }, 1000);
+    if (connectedAt === null) {
+      setElapsedSeconds(0);
+      return;
+    }
+
+    const updateElapsedTime = () => {
+      setElapsedSeconds(
+        Math.max(0, Math.floor((Date.now() - connectedAt) / 1000)),
+      );
+    };
+
+    updateElapsedTime();
+    const intervalId = window.setInterval(updateElapsedTime, 1000);
 
     return () => {
       window.clearInterval(intervalId);
     };
-  }, []);
+  }, [connectedAt]);
 
   useEffect(() => {
     const alternativeAudio = alternativeAudioRef.current;
@@ -143,6 +156,15 @@ export function Call({
         isCallEnding ? " call-ending" : ""
       }`}
     >
+      {connectedAt === null && (
+        <div
+          className="call-connection-status"
+          role="status"
+          aria-label="Gemini Live 연결 중"
+        >
+          <MdWifiOff aria-hidden="true" />
+        </div>
+      )}
       <p className="call-time">{formatCallTime(elapsedSeconds)}</p>
       <h1>{displayName}</h1>
       <p className="call-hint">미리 녹음된 음성을 재생합니다.</p>
@@ -169,7 +191,7 @@ export function Call({
         {actions.map(({ icon: ActionIcon, iconClass, label }) => (
           <button
             key={label}
-            disabled={isCallEnding}
+            disabled={isCallEnding || connectedAt === null}
             onClick={() => setShowUnavailableError(true)}
           >
             <ActionIcon

@@ -20,7 +20,6 @@ export function CallRinging({
   onDecline: () => Promise<void>;
   playRingtone: boolean;
 }) {
-  const [answering, setAnswering] = useState(false);
   const [busy, setBusy] = useState(false);
   const ringtoneRef = useRef<HTMLAudioElement | null>(null);
 
@@ -66,9 +65,7 @@ export function CallRinging({
   }, [playRingtone, stopRingtone]);
 
   return (
-    <Canvas
-      className={`call-gradient call-ringing ${answering ? "answering" : ""}`}
-    >
+    <Canvas className="call-gradient call-ringing">
       <section className="ring-title">
         <p>수신전화</p>
         <h1>{displayName}</h1>
@@ -84,13 +81,12 @@ export function CallRinging({
         <button
           className="answer"
           aria-label="통화 받기"
-          disabled={answering || busy}
+          disabled={busy}
           onClick={() => {
             stopRingtone();
             setBusy(true);
-            setAnswering(true);
             void onAnswer()
-              .catch(() => setAnswering(false))
+              .catch(() => undefined)
               .finally(() => setBusy(false));
           }}
         >
@@ -99,7 +95,7 @@ export function CallRinging({
         <button
           className="decline"
           aria-label="통화 거절"
-          disabled={answering || busy}
+          disabled={busy}
           onClick={() => {
             stopRingtone();
             setBusy(true);
