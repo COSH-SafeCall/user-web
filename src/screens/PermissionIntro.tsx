@@ -1,14 +1,15 @@
 ﻿import "./styles/PermissionIntro.css";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
 import { Icon } from "../components/Icon";
 import { useScale } from "../hooks/useScale";
 import type { Go, IconName } from "../types";
-import type { PermissionStatus } from "../api/contracts";
+import type { PermissionStatus as StoredPermissionStatus } from "../api/contracts";
 import {
   requestLocationPermission,
   requestMicrophonePermission,
+  toPermissionStatus,
   type PermissionRequestResult,
 } from "../utils/browserPermissions";
 
@@ -17,7 +18,7 @@ type PermissionIntroProps = {
   sos: boolean;
   onSavePermissions?: (permissions: Array<{
     code: "MICROPHONE" | "LOCATION";
-    status: PermissionStatus;
+    status: StoredPermissionStatus;
   }>) => Promise<void>;
 };
 
@@ -73,18 +74,84 @@ function getMicrophoneErrorMessage(result: PermissionRequestResult) {
   return "마이크 권한을 확인하지 못했습니다. 마이크 연결 상태를 확인한 뒤 다시 시도해주세요.";
 }
 
+function getLocationWarningMessage(result: PermissionRequestResult) {
+  if (result.reason === "denied") {
+    return "위치 권한이 거부되었습니다. 브라우저 사이트 설정에서 위치 권한을 다시 허용할 수 있습니다.";
+  }
+
+  if (result.reason === "unsupported") {
+    return "현재 브라우저에서 위치 권한 요청을 지원하지 않아 위치 없이 진행합니다.";
+  }
+
+  if (result.reason === "timeout") {
+    return "현재 위치 확인 시간이 초과되어 위치 없이 진행합니다. 위치 권한 상태는 거부로 저장하지 않습니다.";
+  }
+
+  return "현재 위치를 확인하지 못해 위치 없이 진행합니다. 위치 권한 상태는 거부로 저장하지 않습니다.";
+}
+
 export function PermissionIntro({
   go,
   sos,
   onSavePermissions,
 }: PermissionIntroProps) {
   const [requesting, setRequesting] = useState(false);
+  const requestingRef = useRef(false);
   const [canContinueWithoutLocation, setCanContinueWithoutLocation] =
     useState(false);
   const [permissionMessage, setPermissionMessage] = useState<{
     type: "error" | "warning";
     text: string;
   } | null>(null);
+
+  useEffect(() => {
+    if (sos || !navigator.permissions?.query) return;
+
+    let disposed = false;
+    let status: PermissionStatus | null = null;
+
+    const handlePermissionChange = () => {
+      if (disposed || !status || requestingRef.current) return;
+
+      if (status.state === "granted") {
+        setCanContinueWithoutLocation(false);
+        setPermissionMessage(null);
+      } else if (status.state === "denied") {
+        setCanContinueWithoutLocation(true);
+        setPermissionMessage({
+          type: "warning",
+          text: "위치 권한이 거부되었습니다. 브라우저 사이트 설정에서 위치 권한을 다시 허용할 수 있습니다.",
+        });
+      }
+
+      if (status.state !== "prompt") {
+        void onSavePermissions?.([
+          {
+            code: "LOCATION",
+            status: status.state === "granted" ? "GRANTED" : "DENIED",
+          },
+        ]).catch(() => {
+          // 상위 공통 오류 모달에서 저장 실패를 안내합니다.
+        });
+      }
+    };
+
+    void navigator.permissions
+      .query({ name: "geolocation" })
+      .then((permissionStatus) => {
+        if (disposed) return;
+        status = permissionStatus;
+        status.addEventListener("change", handlePermissionChange);
+      })
+      .catch(() => {
+        // Permissions API를 지원하지 않으면 버튼을 눌렀을 때 다시 확인합니다.
+      });
+
+    return () => {
+      disposed = true;
+      status?.removeEventListener("change", handlePermissionChange);
+    };
+  }, [onSavePermissions, sos]);
 
   const handleNext = async () => {
     if (sos) {
@@ -102,26 +169,19 @@ export function PermissionIntro({
     }
 
     setRequesting(true);
+    requestingRef.current = true;
     setPermissionMessage(null);
 
-    const [microphoneResult, locationResult] = await Promise.all([
-      requestMicrophonePermission(),
-      requestLocationPermission(),
-    ]);
-
     try {
-      await onSavePermissions?.([
-        {
-          code: "MICROPHONE",
-          status: microphoneResult.granted ? "GRANTED" : "DENIED",
-        },
-        {
-          code: "LOCATION",
-          status: locationResult.granted ? "GRANTED" : "DENIED",
-        },
-      ]);
+      const microphoneResult = await requestMicrophonePermission();
 
       if (!microphoneResult.granted) {
+        await onSavePermissions?.([
+          {
+            code: "MICROPHONE",
+            status: toPermissionStatus(microphoneResult),
+          },
+        ]);
         setPermissionMessage({
           type: "error",
           text: getMicrophoneErrorMessage(microphoneResult),
@@ -129,20 +189,35 @@ export function PermissionIntro({
         return;
       }
 
+      const locationResult = await requestLocationPermission();
+
+      await onSavePermissions?.([
+        {
+          code: "MICROPHONE",
+          status: toPermissionStatus(microphoneResult),
+        },
+        {
+          code: "LOCATION",
+          status: toPermissionStatus(locationResult),
+        },
+      ]);
+
       if (!locationResult.granted) {
         setCanContinueWithoutLocation(true);
         setPermissionMessage({
           type: "warning",
-          text: "위치 권한이 없어 위치 링크 없이 진행합니다. 브라우저 사이트 설정에서 위치 권한을 다시 허용할 수 있습니다.",
+          text: getLocationWarningMessage(locationResult),
         });
         return;
       }
 
+      setCanContinueWithoutLocation(false);
       go("permissionSos");
     } catch {
       // 상위 공통 오류 모달을 표시하고 현재 화면에 머뭅니다.
     } finally {
       setRequesting(false);
+      requestingRef.current = false;
     }
   };
 

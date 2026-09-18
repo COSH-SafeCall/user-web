@@ -1,6 +1,8 @@
-﻿export type PermissionRequestResult = {
+import type { PermissionStatus } from "../api/contracts";
+
+export type PermissionRequestResult = {
   granted: boolean;
-  reason?: "unsupported" | "denied" | "unavailable";
+  reason?: "unsupported" | "denied" | "unavailable" | "timeout";
 };
 
 export type LocationPermissionRequestResult = PermissionRequestResult & {
@@ -9,6 +11,8 @@ export type LocationPermissionRequestResult = PermissionRequestResult & {
     longitude: number;
   };
 };
+
+export type BrowserPermissionState = PermissionState | "unsupported" | "unknown";
 
 function getPermissionFailureReason(
   error: unknown,
@@ -46,12 +50,37 @@ export async function requestMicrophonePermission(): Promise<PermissionRequestRe
   }
 }
 
-export function requestLocationPermission(): Promise<LocationPermissionRequestResult> {
+export function toPermissionStatus(
+  result: PermissionRequestResult,
+): PermissionStatus {
+  if (result.granted) return "GRANTED";
+  if (result.reason === "denied") return "DENIED";
+  return "NOT_DETERMINED";
+}
+
+export async function getLocationPermissionState(): Promise<BrowserPermissionState> {
   if (!navigator.geolocation) {
-    return Promise.resolve({
+    return "unsupported";
+  }
+
+  if (!navigator.permissions?.query) {
+    return "unknown";
+  }
+
+  try {
+    const status = await navigator.permissions.query({ name: "geolocation" });
+    return status.state;
+  } catch {
+    return "unknown";
+  }
+}
+
+export async function requestLocationPermission(): Promise<LocationPermissionRequestResult> {
+  if (!navigator.geolocation) {
+    return {
       granted: false,
       reason: "unsupported",
-    });
+    };
   }
 
   return new Promise((resolve) => {
@@ -65,17 +94,24 @@ export function requestLocationPermission(): Promise<LocationPermissionRequestRe
           },
         });
       },
-      (error) => {
+      async (error) => {
+        const permissionState = await getLocationPermissionState();
+        const permissionDenied = error.code === error.PERMISSION_DENIED;
+
         resolve({
-          granted: false,
+          granted: !permissionDenied && permissionState === "granted",
           reason:
-            error.code === error.PERMISSION_DENIED ? "denied" : "unavailable",
+            permissionDenied
+              ? "denied"
+              : error.code === error.TIMEOUT
+                ? "timeout"
+                : "unavailable",
         });
       },
       {
         enableHighAccuracy: false,
-        maximumAge: 0,
-        timeout: 10000,
+        maximumAge: 60000,
+        timeout: 30000,
       },
     );
   });
