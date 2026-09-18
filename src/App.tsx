@@ -41,6 +41,7 @@ import {
   createCall,
   endCall,
   getCall,
+  getConnection,
   sendCallEvent,
   sendHeartbeat,
 } from "./api/callApi";
@@ -94,6 +95,16 @@ function getSafeCallHistoryState(state: unknown) {
   const safeCall = (state as SafeCallHistoryState).safeCall;
   if (!safeCall || !validScreens.has(safeCall.screen)) return null;
   return safeCall;
+}
+
+async function waitForReadyConnection(callId: string, callPageKey: string) {
+  while (true) {
+    const result = await getConnection(callId, callPageKey);
+    if (result.status === "READY") return result;
+    await new Promise<void>((resolve) => {
+      window.setTimeout(resolve, Math.max(result.retryAfterMs, 100));
+    });
+  }
 }
 
 function mergeHistoryState(safeCall: SafeCallHistoryState["safeCall"]) {
@@ -628,7 +639,11 @@ export default function App() {
         },
       );
       setActiveCall(created);
-      replaceScreen("voiceLoading");
+      const readyConnection = await waitForReadyConnection(
+        created.id,
+        pending.callPageKey,
+      );
+      await connectCall(created, readyConnection);
     } catch (error) {
       showApiError(error);
       throw error;
@@ -642,12 +657,10 @@ export default function App() {
     setActiveCall(null);
   };
 
-  const handleConnected = useCallback(
-    async (readyConnection: ConnectionView) => {
-      if (!activeCall || !session?.csrfToken) {
-        throw new Error("통화 세션이 필요합니다.");
-      }
-      let currentCall = activeCall;
+  const connectCall = useCallback(
+    async (call: CallView, readyConnection: ConnectionView) => {
+      if (!session?.csrfToken) throw new Error("통화 세션이 필요합니다.");
+      let currentCall = call;
       const security = {
         csrfToken: session.csrfToken,
         callPageKey: callPageKeyRef.current,
@@ -681,7 +694,6 @@ export default function App() {
       } catch (error) {
         liveConnectionRef.current?.close();
         liveConnectionRef.current = null;
-        showApiError(error);
         try {
           setActiveCall(
             await sendCallEvent(security, currentCall.id, {
@@ -697,7 +709,15 @@ export default function App() {
         throw error;
       }
     },
-    [activeCall, replaceScreen, session?.csrfToken, showApiError],
+    [replaceScreen, session?.csrfToken, showApiError],
+  );
+
+  const handleConnected = useCallback(
+    async (readyConnection: ConnectionView) => {
+      if (!activeCall) throw new Error("통화 세션이 필요합니다.");
+      await connectCall(activeCall, readyConnection);
+    },
+    [activeCall, connectCall],
   );
 
   const handleEndCall = async (reason: CallEndReason) => {
