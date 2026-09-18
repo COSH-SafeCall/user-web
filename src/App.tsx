@@ -74,6 +74,28 @@ type GeminiLiveConnection = { close: () => void };
 
 type ScreenFlow = "onboarding" | "home" | "setting" | "help";
 type ScreenTransition = "same-flow" | "flow-change";
+type SafeCallHistoryState = {
+  safeCall?: {
+    screen: Screen;
+    previousScreen: Screen | null;
+  };
+};
+
+const validScreens = new Set<Screen>([...screenOrder, "terms"]);
+
+function getSafeCallHistoryState(state: unknown) {
+  if (!state || typeof state !== "object") return null;
+  const safeCall = (state as SafeCallHistoryState).safeCall;
+  if (!safeCall || !validScreens.has(safeCall.screen)) return null;
+  return safeCall;
+}
+
+function mergeHistoryState(safeCall: SafeCallHistoryState["safeCall"]) {
+  const currentState = window.history.state;
+  const baseState =
+    currentState && typeof currentState === "object" ? currentState : {};
+  return { ...baseState, safeCall };
+}
 
 function getScreenFlow(screen: Screen): ScreenFlow {
   if (screen === "help") return "help";
@@ -145,21 +167,95 @@ export default function App() {
   const reportedEventsRef = useRef(new Set<string>());
   const liveConnectionRef = useRef<GeminiLiveConnection | null>(null);
   const terminatingCallRef = useRef(false);
+  const screenRef = useRef<Screen>("login");
 
-  const go: Go = useCallback((nextScreen) => {
-    setScreen((current) => {
-      setScreenTransition(
-        getScreenFlow(current) === getScreenFlow(nextScreen)
-          ? "same-flow"
-          : "flow-change",
-      );
-      return nextScreen;
-    });
+  const applyScreen = useCallback((nextScreen: Screen) => {
+    const currentScreen = screenRef.current;
+    screenRef.current = nextScreen;
+    setScreenTransition(
+      getScreenFlow(currentScreen) === getScreenFlow(nextScreen)
+        ? "same-flow"
+        : "flow-change",
+    );
+    setScreen(nextScreen);
   }, []);
+
+  const go: Go = useCallback(
+    (nextScreen) => {
+      if (nextScreen === screenRef.current) return;
+
+      const currentHistory = getSafeCallHistoryState(window.history.state);
+      if (currentHistory?.previousScreen === nextScreen) {
+        window.history.back();
+        return;
+      }
+
+      window.history.pushState(
+        mergeHistoryState({
+          screen: nextScreen,
+          previousScreen: screenRef.current,
+        }),
+        "",
+      );
+      applyScreen(nextScreen);
+    },
+    [applyScreen],
+  );
+
+  const replaceScreen = useCallback(
+    (nextScreen: Screen, resetPrevious = false) => {
+      const currentHistory = getSafeCallHistoryState(window.history.state);
+      window.history.replaceState(
+        mergeHistoryState({
+          screen: nextScreen,
+          previousScreen: resetPrevious
+            ? null
+            : (currentHistory?.previousScreen ?? null),
+        }),
+        "",
+      );
+      applyScreen(nextScreen);
+    },
+    [applyScreen],
+  );
 
   const showApiError = useCallback((error: unknown) => {
     setApiError(toUserMessage(error));
   }, []);
+
+  useEffect(() => {
+    window.history.replaceState(
+      mergeHistoryState({ screen: screenRef.current, previousScreen: null }),
+      "",
+    );
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const historyScreen = getSafeCallHistoryState(event.state)?.screen;
+      if (!historyScreen) return;
+
+      if (activeCall?.id && session?.csrfToken) {
+        const callId = activeCall.id;
+        const callPageKey = callPageKeyRef.current;
+        terminatingCallRef.current = true;
+        liveConnectionRef.current?.close();
+        liveConnectionRef.current = null;
+        setActiveCall(null);
+        void endCall(
+          { csrfToken: session.csrfToken, callPageKey },
+          callId,
+          "BACK_NAVIGATION",
+          true,
+        ).catch(showApiError);
+      }
+
+      applyScreen(historyScreen);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [activeCall?.id, applyScreen, session?.csrfToken, showApiError]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -169,7 +265,7 @@ export default function App() {
       .then((result) => {
         if (ignore) return;
         setSession(result);
-        if (result.kind === "MEMBER") go("home");
+        if (result.kind === "MEMBER") replaceScreen("home", true);
       })
       .catch((error: unknown) => {
         if (!ignore && !(error instanceof DOMException && error.name === "AbortError")) {
@@ -184,7 +280,7 @@ export default function App() {
       ignore = true;
       controller.abort();
     };
-  }, [go, showApiError]);
+  }, [replaceScreen, showApiError]);
 
   useEffect(() => {
     if (!session || !["contacts", "contactModal", "editContacts"].includes(screen)) {
@@ -394,7 +490,7 @@ export default function App() {
     try {
       await createVirtualSession(session.csrfToken);
       setSession(await getSession());
-      go("profile");
+      replaceScreen("profile", true);
     } catch (error) {
       showApiError(error);
     } finally {
@@ -408,7 +504,7 @@ export default function App() {
     try {
       await createGuestSession(session.csrfToken);
       setSession(await getSession());
-      go("home");
+      replaceScreen("home", true);
     } catch (error) {
       showApiError(error);
     } finally {
@@ -561,7 +657,7 @@ export default function App() {
           onError: (error) => showApiError(error),
         });
         await sendEvent("CONNECTED", { grantId: readyConnection.grantId });
-        go("callRinging");
+        replaceScreen("callRinging");
       } catch (error) {
         showApiError(error);
         await sendEvent("FAILED", {
@@ -571,7 +667,7 @@ export default function App() {
         throw error;
       }
     },
-    [go, sendEvent, showApiError],
+    [replaceScreen, sendEvent, showApiError],
   );
 
   const handleEndCall = async (reason: CallEndReason) => {
@@ -617,7 +713,7 @@ export default function App() {
       setActiveCall(null);
       liveConnectionRef.current?.close();
       liveConnectionRef.current = null;
-      go("login");
+      replaceScreen("login", true);
     } catch (error) {
       showApiError(error);
     } finally {
@@ -692,7 +788,9 @@ export default function App() {
               <PermissionIntro go={go} sos={false} onSavePermissions={handleSavePermissions} />
             )}
             {screen === "permissionSos" && <PermissionIntro go={go} sos />}
-            {screen === "complete" && <Complete go={go} />}
+            {screen === "complete" && (
+              <Complete go={(nextScreen) => replaceScreen(nextScreen, true)} />
+            )}
             {screen === "personaUse" && (
               <PersonaUse go={go} selected={scenarioCode} setSelected={setScenarioCode} callOptions={callOptions} />
             )}
@@ -725,14 +823,20 @@ export default function App() {
             {screen === "help" && <HelpScreen go={go} />}
             {screen === "callRinging" && (
               <CallRinging
-                go={go}
+                go={(nextScreen) => replaceScreen(nextScreen)}
                 displayName={displayName}
                 onShown={() => sendEvent("RINGING_SHOWN", { swallowError: true })}
                 onAnswer={() => sendEvent("ANSWERED")}
                 onDecline={() => handleEndCall("DECLINED")}
               />
             )}
-            {screen === "call" && <Call go={go} displayName={displayName} onEnd={handleEndCall} />}
+            {screen === "call" && (
+              <Call
+                go={(nextScreen) => replaceScreen(nextScreen)}
+                displayName={displayName}
+                onEnd={handleEndCall}
+              />
+            )}
             {screen === "setting" && (
               <Setting go={go} userName={userName} onLogout={handleLogout} busy={busyAction === "logout"} />
             )}
@@ -742,7 +846,16 @@ export default function App() {
             {screen === "withdraw" && (
               <Withdraw go={go} onWithdraw={handleWithdraw} busy={busyAction === "withdraw"} />
             )}
-            {screen === "deletionStatus" && <DeletionStatus go={go} deletion={deletion} />}
+            {screen === "deletionStatus" && (
+              <DeletionStatus
+                go={(nextScreen) =>
+                  nextScreen === "login"
+                    ? replaceScreen(nextScreen, true)
+                    : go(nextScreen)
+                }
+                deletion={deletion}
+              />
+            )}
             {screen === "editProfile" && <Profile go={go} edit />}
             {screen === "editContacts" && (
               <Contacts go={go} contacts={contacts} onAddContact={handleAddContact} onDeleteContact={handleDeleteContact} edit />
