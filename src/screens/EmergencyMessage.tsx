@@ -88,22 +88,6 @@ function getMessageErrorView(error: unknown): MessageErrorView {
   );
 }
 
-function getLocationStatusMessage(status: LocationCompositionStatus) {
-  const messages: Record<LocationCompositionStatus, string> = {
-    included: "현재 위치 좌표를 지도 링크에 적용했습니다.",
-    "permission-denied":
-      "위치 권한이 허용되지 않아 API 메시지 본문만 사용합니다.",
-    "template-unavailable":
-      "사용 가능한 지도 템플릿이 없어 API 메시지 본문만 사용합니다.",
-    "unsupported-coordinate-system":
-      "지원하지 않는 좌표계라 API 메시지 본문만 사용합니다.",
-    unavailable:
-      "현재 위치를 확인하지 못해 API 메시지 본문만 사용합니다.",
-  };
-
-  return messages[status];
-}
-
 function findCoordinateUrlTemplate(value: string) {
   const rawTemplate = value.trim();
   const markdownLabel = /^\[([^\]]+)\]/.exec(rawTemplate)?.[1];
@@ -273,7 +257,6 @@ export function EmergencyMessage({ go }: { go: Go }) {
         </button>
         <div className="message-app-title">
           <h1>새 메시지</h1>
-          <span>SafeCall 데모</span>
         </div>
         <span className="message-header-more" aria-hidden="true">
           <MdMoreVert />
@@ -335,9 +318,11 @@ export function EmergencyMessage({ go }: { go: Go }) {
                 <br />
                 실제 문자가 발송되지 않습니다.
               </p>
-              <span className="message-demo-badge">
-                {getLocationStatusMessage(locationStatus)}
-              </span>
+              {locationStatus === "included" && (
+                <span className="message-demo-badge">
+                  현재 위치 좌표를 지도 링크에 적용했습니다.
+                </span>
+              )}
             </div>
           </section>
 

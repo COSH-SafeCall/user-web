@@ -65,11 +65,6 @@ export function DeletionStatus({
               ? "계정 삭제를 완료하지 못했습니다."
               : "계정 삭제 요청을 접수했습니다."}
         </h1>
-        <p>
-          서버가 저장된 계정 데이터를 순서대로 삭제합니다. 처리가 완료되면
-          이 계정으로 다시 로그인할 수 없습니다.
-        </p>
-
         <ol className="deletion-status-steps">
           {deletionSteps.map((step) => (
             <li className={step.state} key={step.label}>
@@ -81,14 +76,6 @@ export function DeletionStatus({
           ))}
         </ol>
       </section>
-
-      <p className="deletion-status-note">
-        {isProcessing
-          ? "서버의 삭제 작업 상태를 주기적으로 확인하고 있습니다. 처리 중에는 이 화면을 벗어날 수 없습니다."
-          : status === "COMPLETED"
-            ? "삭제가 완료되었습니다. 로그인 화면으로 이동하기 전에 세션을 안전하게 초기화합니다."
-            : "삭제 요청이 완료되지 않았습니다. 설정 화면으로 돌아가 다시 시도해주세요."}
-      </p>
 
       {isProcessing && (
         <BottomButton label="삭제 처리 중입니다" onClick={() => undefined} disabled />

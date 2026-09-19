@@ -93,6 +93,18 @@
   background: #a6efff;
 }
 
+.voice-loading-error {
+  position: absolute;
+  top: 406px;
+  left: 20px;
+  right: 20px;
+  margin: 0;
+  color: #ffe4e4;
+  font-size: 13px;
+  line-height: 18px;
+  text-align: center;
+}
+
 .voice-loading-policy {
   position: absolute;
   top: 522px;

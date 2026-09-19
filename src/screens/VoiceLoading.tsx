@@ -14,9 +14,6 @@ export function VoiceLoading({
   callPageKey: string;
   onConnected: (connection: ConnectionView) => Promise<void>;
 }) {
-  const [connectionMessage, setConnectionMessage] = useState(
-    "연결 정보를 준비하고 있습니다.",
-  );
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -36,7 +33,6 @@ export function VoiceLoading({
 
         if (disposed) return;
         if (result.status === "ISSUING") {
-          setConnectionMessage("AI 연결 정보를 발급하고 있습니다.");
           retryTimer = window.setTimeout(
             () => void poll(),
             Math.max(result.retryAfterMs, 100),
@@ -44,7 +40,6 @@ export function VoiceLoading({
           return;
         }
 
-        setConnectionMessage("연결 준비가 완료되었습니다.");
         await onConnected(result);
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
@@ -74,7 +69,11 @@ export function VoiceLoading({
           <span />
           <span />
         </div>
-        <p aria-live="polite">{connectionError ?? connectionMessage}</p>
+        {connectionError && (
+          <p className="voice-loading-error" role="alert">
+            {connectionError}
+          </p>
+        )}
         <p className="voice-loading-policy">
           AI는 실제로 실행되지 않은 112 신고,<br />
           긴급 문자 발송 또는 위치 링크 전송이<br />

@@ -44,13 +44,6 @@
   line-height: 28px;
 }
 
-.deletion-status-card > p {
-  margin: 0;
-  color: #b9c0cd;
-  font-size: 12px;
-  line-height: 19px;
-}
-
 .deletion-status-steps {
   margin: 25px 0 0;
   padding: 0;
@@ -109,13 +102,4 @@
   height: 8px;
   border-radius: 50%;
   background: #8b8dff;
-}
-
-.deletion-status-note {
-  width: calc(100% - 58px);
-  margin: 20px auto 0;
-  color: #8d94a3;
-  font-size: 11px;
-  line-height: 17px;
-  text-align: center;
 }
