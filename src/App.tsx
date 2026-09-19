@@ -46,7 +46,7 @@ import {
   sendHeartbeat,
 } from "./api/callApi";
 import { getDeletion, requestAccountDeletion } from "./api/deletionApi";
-import { createCallPageKey, toUserMessage } from "./api/httpClient";
+import { ApiError, createCallPageKey, toUserMessage } from "./api/httpClient";
 import type { GeminiLiveConnection } from "./api/geminiLive";
 import { fixedUserProfile, type FixedEmergencyContact } from "./fixedUserData";
 import type {
@@ -203,6 +203,10 @@ export default function App() {
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [initializing, setInitializing] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [callRateLimitError, setCallRateLimitError] = useState<string | null>(
+    null,
+  );
+  const [startInAlternativeMode, setStartInAlternativeMode] = useState(false);
   const [isDurationLimitNoticeOpen, setIsDurationLimitNoticeOpen] =
     useState(false);
   const callOptionsCacheRef = useRef<{
@@ -649,6 +653,8 @@ export default function App() {
     callConnectionAbortRef.current = null;
     setActiveCall(null);
     setCallConnectedAt(null);
+    setCallRateLimitError(null);
+    setStartInAlternativeMode(false);
     setScenarioCode(selectedScenario);
     setCounterpartCode(selectedCounterpart);
     pendingCallRef.current = {
@@ -690,6 +696,14 @@ export default function App() {
       await connectCall(created, readyConnection, connectionController.signal);
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
+      if (
+        error instanceof ApiError &&
+        error.status === 429 &&
+        error.code === "RATE_LIMITED"
+      ) {
+        setCallRateLimitError(error.message);
+        return;
+      }
       showApiError(error);
       throw error;
     } finally {
@@ -703,6 +717,22 @@ export default function App() {
   const handleDeclineIncomingCall = async () => {
     pendingCallRef.current = null;
     setActiveCall(null);
+  };
+
+  const handleRateLimitFallback = () => {
+    pendingCallRef.current = null;
+    setCallRateLimitError(null);
+    setActiveCall(null);
+    setCallConnectedAt(null);
+    setStartInAlternativeMode(true);
+    replaceScreen("call");
+  };
+
+  const handleRateLimitHome = () => {
+    pendingCallRef.current = null;
+    setCallRateLimitError(null);
+    setStartInAlternativeMode(false);
+    replaceScreen("home", true);
   };
 
   const connectCall = useCallback(
@@ -1000,6 +1030,7 @@ export default function App() {
               <CallRinging
                 go={(nextScreen) => replaceScreen(nextScreen)}
                 displayName={displayName}
+                counterpartCode={counterpartCode}
                 playRingtone={setting?.incomingAlertMode !== "SILENT"}
                 onAnswer={handleAnswerIncomingCall}
                 onDecline={handleDeclineIncomingCall}
@@ -1007,10 +1038,14 @@ export default function App() {
             )}
             {screen === "call" && (
               <Call
-                go={(nextScreen) => replaceScreen(nextScreen)}
+                go={(nextScreen) => {
+                  if (nextScreen === "home") setStartInAlternativeMode(false);
+                  replaceScreen(nextScreen);
+                }}
                 displayName={displayName}
                 counterpartCode={activeCall?.counterpartCode ?? counterpartCode}
                 connectedAt={callConnectedAt}
+                startInAlternativeMode={startInAlternativeMode}
                 onEnd={handleEndCall}
               />
             )}
@@ -1064,6 +1099,18 @@ export default function App() {
                 title="요청을 완료하지 못했습니다."
                 description={apiError}
                 onConfirm={() => setApiError(null)}
+              />
+            </div>
+          )}
+          {callRateLimitError && (
+            <div className="modal-layer">
+              <ErrorMessage
+                title="체험 통화 횟수를 모두 사용했습니다."
+                description={callRateLimitError}
+                confirmLabel="대체통화로 전환"
+                onConfirm={handleRateLimitFallback}
+                secondaryLabel="홈으로"
+                onSecondary={handleRateLimitHome}
               />
             </div>
           )}

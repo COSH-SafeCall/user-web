@@ -7,14 +7,12 @@ import {
   MdOutlineGroups,
   MdRecordVoiceOver,
 } from "react-icons/md";
-import father from "../assets/figma/raw-image-1.jpeg";
-import mother from "../assets/figma/raw-image-3.jpeg";
-import friend from "../assets/figma/raw-image-5.jpeg";
 import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
 import { Icon } from "../components/Icon";
 import { PersonaPersonOption } from "../components/PersonaPersonOption";
 import { PersonaSituationOption } from "../components/PersonaSituationOption";
+import { counterpartProfiles } from "../counterpartProfiles";
 import type {
   CallOptionsView,
   CounterpartCode,
@@ -64,9 +62,9 @@ const situationVisuals: SituationChoice[] = [
 ];
 
 const peopleVisuals: PersonChoice[] = [
-  { code: "FATHER", image: father, imageClass: "father", label: "아빠" },
-  { code: "MOTHER", image: mother, imageClass: "mother", label: "엄마" },
-  { code: "FRIEND", image: friend, imageClass: "friend", label: "친구" },
+  { code: "FATHER", ...counterpartProfiles.FATHER, label: "아빠" },
+  { code: "MOTHER", ...counterpartProfiles.MOTHER, label: "엄마" },
+  { code: "FRIEND", ...counterpartProfiles.FRIEND, label: "친구" },
 ];
 
 function Pager({ active }: { active: number }) {

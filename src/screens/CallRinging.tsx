@@ -1,27 +1,31 @@
 ﻿import "./styles/Call.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MdCall, MdCallEnd } from "react-icons/md";
-import father from "../assets/figma/raw-image-1.jpeg";
 import incomingRingtone from "../assets/audio/zapsplat_multimedia_ringtone_smartphone_mallets_musical_004_107249.mp3";
 import { Canvas } from "../components/Canvas";
 import { Icon } from "../components/Icon";
+import { counterpartProfiles } from "../counterpartProfiles";
+import type { CounterpartCode } from "../api/contracts";
 import type { Go } from "../types";
 
 export function CallRinging({
   go,
   displayName,
+  counterpartCode,
   onAnswer,
   onDecline,
   playRingtone,
 }: {
   go: Go;
   displayName: string;
+  counterpartCode: CounterpartCode;
   onAnswer: () => Promise<void>;
   onDecline: () => Promise<void>;
   playRingtone: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const ringtoneRef = useRef<HTMLAudioElement | null>(null);
+  const counterpartProfile = counterpartProfiles[counterpartCode];
 
   const stopRingtone = useCallback(() => {
     const ringtone = ringtoneRef.current;
@@ -69,7 +73,11 @@ export function CallRinging({
       <section className="ring-title">
         <p>수신전화</p>
         <h1>{displayName}</h1>
-        <img src={father} alt={displayName} />
+        <img
+          className={`call-profile-image ${counterpartProfile.imageClass}`}
+          src={counterpartProfile.image}
+          alt={`${displayName} 프로필`}
+        />
       </section>
       <p className="ring-warning">
         <Icon name="notifications" size={18} />

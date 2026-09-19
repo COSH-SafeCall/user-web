@@ -1,5 +1,5 @@
 import "./styles/Call.css";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { IconType } from "react-icons";
 import {
   MdBluetooth,
@@ -16,6 +16,7 @@ import friendAlternativeCallAudio from "../assets/audio/SafeCall_대체통화_-_
 import motherAlternativeCallAudio from "../assets/audio/SafeCall_대체통화_-_엄마.mp3";
 import { Canvas } from "../components/Canvas";
 import { RequirementErrorMessage } from "../components/RequirementErrorMessage";
+import { counterpartProfiles } from "../counterpartProfiles";
 import type { CallEndReason, CounterpartCode } from "../api/contracts";
 import type { Go } from "../types";
 
@@ -45,20 +46,37 @@ export function Call({
   displayName,
   counterpartCode,
   connectedAt,
+  startInAlternativeMode = false,
   onEnd,
 }: {
   go: Go;
   displayName: string;
   counterpartCode: CounterpartCode;
   connectedAt: number | null;
+  startInAlternativeMode?: boolean;
   onEnd: (reason: CallEndReason) => Promise<void>;
 }) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [isAlternativeCallActive, setIsAlternativeCallActive] = useState(false);
+  const [isAlternativeCallActive, setIsAlternativeCallActive] = useState(
+    startInAlternativeMode,
+  );
   const [isCallEnding, setIsCallEnding] = useState(false);
   const [showUnavailableError, setShowUnavailableError] = useState(false);
   const alternativeAudioRef = useRef<HTMLAudioElement | null>(null);
   const endCallTimeoutRef = useRef<number | null>(null);
+  const counterpartProfile = counterpartProfiles[counterpartCode];
+  const setAlternativeAudioElement = useCallback(
+    (audio: HTMLAudioElement | null) => {
+      alternativeAudioRef.current = audio;
+      if (!audio || !startInAlternativeMode) return;
+
+      audio.currentTime = 0;
+      void audio.play().catch(() => {
+        setIsAlternativeCallActive(false);
+      });
+    },
+    [startInAlternativeMode],
+  );
   const actions: CallAction[] = [
     {
       icon: PiCassetteTapeFill,
@@ -166,7 +184,7 @@ export function Call({
         isCallEnding ? " call-ending" : ""
       }`}
     >
-      {connectedAt === null && (
+      {connectedAt === null && !isAlternativeCallActive && (
         <div
           className="call-connection-status"
           role="status"
@@ -177,6 +195,11 @@ export function Call({
       )}
       <p className="call-time">{formatCallTime(elapsedSeconds)}</p>
       <h1>{displayName}</h1>
+      <img
+        className={`call-profile-image ${counterpartProfile.imageClass}`}
+        src={counterpartProfile.image}
+        alt={`${displayName} 프로필`}
+      />
       <p className="call-hint">미리 녹음된 음성을 재생합니다.</p>
       {isAlternativeCallActive ? (
         <p className="alt-call-status" aria-live="polite">
@@ -192,7 +215,7 @@ export function Call({
         </button>
       )}
       <audio
-        ref={alternativeAudioRef}
+        ref={setAlternativeAudioElement}
         src={alternativeCallAudioByCounterpart[counterpartCode]}
         loop
         preload="auto"

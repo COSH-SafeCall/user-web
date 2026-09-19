@@ -6,6 +6,8 @@ type ErrorMessageProps = {
   description: ReactNode;
   confirmLabel?: string;
   onConfirm: () => void;
+  secondaryLabel?: string;
+  onSecondary?: () => void;
 };
 
 export function ErrorMessage({
@@ -13,14 +15,27 @@ export function ErrorMessage({
   description,
   confirmLabel = "확인",
   onConfirm,
+  secondaryLabel,
+  onSecondary,
 }: ErrorMessageProps) {
   return (
     <div className="error-message" aria-live="assertive">
       <b>{title}</b>
       <p>{description}</p>
-      <button type="button" onClick={onConfirm}>
-        {confirmLabel}
-      </button>
+      <div className="error-message-actions">
+        {secondaryLabel && onSecondary && (
+          <button
+            type="button"
+            className="error-message-secondary"
+            onClick={onSecondary}
+          >
+            {secondaryLabel}
+          </button>
+        )}
+        <button type="button" onClick={onConfirm}>
+          {confirmLabel}
+        </button>
+      </div>
     </div>
   );
 }

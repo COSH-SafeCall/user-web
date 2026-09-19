@@ -57,6 +57,18 @@
   margin-top: 18px;
 }
 
+.call-profile-image.father {
+  object-position: 56% 30%;
+}
+
+.call-profile-image.mother {
+  object-position: 50% 28%;
+}
+
+.call-profile-image.friend {
+  object-position: 47% 27%;
+}
+
 .ring-warning {
   position: absolute;
   top: 510px;
@@ -235,6 +247,7 @@
 
 .call-connected .call-time,
 .call-connected h1,
+.call-connected > .call-profile-image,
 .call-connected .call-hint,
 .call-connected .alt-call,
 .call-connected .alt-call-status,
@@ -296,6 +309,17 @@
   line-height: 43px;
   font-weight: 400;
   letter-spacing: -0.4px;
+}
+
+.call-active > .call-profile-image {
+  position: absolute;
+  top: 250px;
+  left: 50%;
+  width: 112px;
+  height: 112px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .call-hint {
@@ -367,6 +391,7 @@
 
 .call-ending .call-time,
 .call-ending h1,
+.call-ending > .call-profile-image,
 .call-ending .call-hint,
 .call-ending .alt-call,
 .call-ending .alt-call-status,
@@ -576,6 +601,7 @@
   .canvas.call-ending::after,
   .call-connected .call-time,
   .call-connected h1,
+  .call-connected > .call-profile-image,
   .call-connected .call-hint,
   .call-connected .alt-call,
   .call-connected .alt-call-status,
@@ -583,6 +609,7 @@
   .call-connected .call-bottom,
   .call-ending .call-time,
   .call-ending h1,
+  .call-ending > .call-profile-image,
   .call-ending .call-hint,
   .call-ending .alt-call,
   .call-ending .alt-call-status,
