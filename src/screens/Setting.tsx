@@ -1,41 +1,60 @@
-﻿import "../components/styles/Avatar.css";
+import "../components/styles/Avatar.css";
 import "./styles/Setting.css";
+import { useState } from "react";
 import { MdPerson } from "react-icons/md";
 import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
+import { RequirementErrorMessage } from "../components/RequirementErrorMessage";
 import { SettingBlock } from "../components/SettingBlock";
 import type { Go, Screen } from "../types";
 
 const settingBlockNames = [
   [
-    "사용자 정보 수정",
+    "사용자 정보 확인",
     "비상 연락처 수정",
     "가상 통화 수신 벨소리 설정",
-    "위치 권한 허용 여부 변경",
-    "시험 긴급 메시지 보내기",
+    "권한 허용 설정",
   ],
   ["도움말", "문의하기"],
-  ["개인정보 정책"],
   ["탈퇴하기"],
 ];
 
 const settingRoutes: Record<string, Screen> = {
-  "사용자 정보 수정": "editProfile",
+  "사용자 정보 확인": "editProfile",
   "비상 연락처 수정": "editContacts",
   "가상 통화 수신 벨소리 설정": "soundSetting",
-  "위치 권한 허용 여부 변경": "permissionSetting",
+  "권한 허용 설정": "permissionSetting",
   "시험 긴급 메시지 보내기": "setting",
   도움말: "help",
-  문의하기: "settingDialog",
-  "개인정보 정책": "terms",
   탈퇴하기: "withdraw",
 };
 
-export function Setting({ go, dialog }: { go: Go; dialog?: boolean }) {
-  const selectSetting = (name: string) => go(settingRoutes[name]);
+export function Setting({
+  go,
+  dialog,
+  userName,
+  onLogout,
+  busy,
+}: {
+  go: Go;
+  dialog?: boolean;
+  userName: string;
+  onLogout: () => Promise<void>;
+  busy?: boolean;
+}) {
+  const [showContactError, setShowContactError] = useState(false);
+
+  const selectSetting = (name: string) => {
+    if (name === "문의하기") {
+      setShowContactError(true);
+      return;
+    }
+
+    go(settingRoutes[name]);
+  };
 
   return (
-    <Canvas className="setting">
+    <Canvas className="setting" layout="scroll">
       <div className={dialog ? "dimmed" : ""}>
         <Header title="설정" back={() => go("home")} />
         <section className="setting-profile">
@@ -43,8 +62,8 @@ export function Setting({ go, dialog }: { go: Go; dialog?: boolean }) {
             <MdPerson className="profile-person-icon" aria-hidden="true" />
           </div>
           <div>
-            <b>이름</b>
-            <span>카카오 로그인</span>
+            <b>{userName}</b>
+            <span>가상 회원</span>
           </div>
         </section>
         <section className="setting-groups">
@@ -67,8 +86,18 @@ export function Setting({ go, dialog }: { go: Go; dialog?: boolean }) {
           <p>로그아웃 시에도 안심통화 기능은 사용 가능합니다.</p>
           <div>
             <button onClick={() => go("setting")}>취소</button>
-            <button onClick={() => go("login")}>로그아웃</button>
+            <button disabled={busy} onClick={() => void onLogout()}>
+              {busy ? "처리 중..." : "로그아웃"}
+            </button>
           </div>
+        </div>
+      )}
+      {showContactError && (
+        <div className="modal-layer">
+          <RequirementErrorMessage
+            type="mobileOnlyFeature"
+            onConfirm={() => setShowContactError(false)}
+          />
         </div>
       )}
     </Canvas>

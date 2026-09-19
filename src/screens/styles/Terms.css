@@ -1,6 +1,12 @@
 ﻿.terms {
-  padding-top: 59px;
+  padding-top: 0;
   background: #000;
+  overflow: clip;
+}
+
+.terms .onboarding-scroll {
+  padding-top: 59px;
+  padding-bottom: 84px;
 }
 
 .terms h1 {
@@ -11,7 +17,7 @@
   line-height: 34px;
   font-weight: 400;
   letter-spacing: -0.5px;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .terms-body {
@@ -79,4 +85,17 @@
 
 .agree input:checked + span svg {
   opacity: 1;
+}
+
+.terms .terms-body {
+  margin-bottom: 32px;
+}
+
+.terms .agree {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  width: min(calc(100% - 60px), 342px);
+  flex: 0 0 auto;
+  margin: auto auto 8px;
 }

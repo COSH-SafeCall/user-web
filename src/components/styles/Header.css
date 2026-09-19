@@ -19,3 +19,9 @@
   display: grid;
   place-items: center;
 }
+
+.header-back-placeholder {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+}

@@ -1,0 +1,105 @@
+.deletion-status {
+  background: #000;
+}
+
+.deletion-status-card {
+  width: calc(100% - 48px);
+  margin: 72px auto 0;
+  border: 1px solid #344158;
+  border-radius: 24px;
+  padding: 28px 22px 24px;
+  color: #fff;
+  background: linear-gradient(145deg, #1e293b 0%, #121722 100%);
+}
+
+.deletion-status-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #8b8dff;
+  background: rgba(99, 102, 241, 0.16);
+}
+
+.deletion-status-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.deletion-status-badge {
+  display: inline-flex;
+  margin-top: 18px;
+  border-radius: 12px;
+  padding: 5px 10px;
+  color: #d4d5ff;
+  background: rgba(99, 102, 241, 0.24);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.deletion-status-card h1 {
+  margin: 13px 0 8px;
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.deletion-status-steps {
+  margin: 25px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.deletion-status-steps li {
+  position: relative;
+  min-height: 48px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: #778093;
+  font-size: 13px;
+}
+
+.deletion-status-steps li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 25px;
+  width: 2px;
+  height: 23px;
+  background: #39445a;
+}
+
+.deletion-status-steps li > span {
+  width: 26px;
+  height: 26px;
+  border: 2px solid #4b566c;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.deletion-status-steps li.done,
+.deletion-status-steps li.current {
+  color: #fff;
+}
+
+.deletion-status-steps li.done > span {
+  border-color: #6366f1;
+  color: #fff;
+  background: #6366f1;
+}
+
+.deletion-status-steps li.current > span {
+  border-color: #8b8dff;
+  box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.14);
+}
+
+.deletion-status-steps li.current > span::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #8b8dff;
+}

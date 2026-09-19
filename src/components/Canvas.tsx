@@ -4,6 +4,7 @@ import type { CSSProperties, ReactNode } from "react";
 type CanvasProps = {
   children: ReactNode;
   className?: string;
+  layout?: "fixed" | "scroll" | "onboarding";
   style?: CSSProperties;
   onClick?: () => void;
 };
@@ -11,11 +12,16 @@ type CanvasProps = {
 export function Canvas({
   children,
   className = "",
+  layout = "fixed",
   style,
   onClick,
 }: CanvasProps) {
   return (
-    <main className={`canvas ${className}`} style={style} onClick={onClick}>
+    <main
+      className={`canvas canvas-layout-${layout} ${className}`}
+      style={style}
+      onClick={onClick}
+    >
       {children}
     </main>
   );

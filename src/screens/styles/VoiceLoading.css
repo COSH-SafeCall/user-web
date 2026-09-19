@@ -1,8 +1,29 @@
-﻿.voice-loading {
+.voice-loading {
   position: relative;
   display: block;
   color: #fff;
   background: #455269;
+  transition:
+    background 0.26s cubic-bezier(0.22, 0.25, 0, 1),
+    filter 0.26s cubic-bezier(0.22, 0.25, 0, 1);
+}
+
+.voice-loading.ringing-soon {
+  background: linear-gradient(180deg, #4a4f60 0%, #000 50%, #444365 100%);
+  filter: brightness(0.76);
+}
+
+.voice-loading-content {
+  position: absolute;
+  inset: 0;
+  transition:
+    opacity 0.24s cubic-bezier(0.22, 0.25, 0, 1),
+    filter 0.24s cubic-bezier(0.22, 0.25, 0, 1);
+}
+
+.voice-loading.ringing-soon .voice-loading-content {
+  opacity: 0;
+  filter: blur(4px);
 }
 
 .voice-loading h1 {
@@ -35,36 +56,56 @@
   width: 10px;
   border-radius: 8px;
   background: #fff;
+  transform-origin: center bottom;
+  animation: voice-bar-wave 1.08s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 .voice-bars span:nth-child(1) {
   height: 34px;
+  animation-delay: -0.32s;
   background: #fff;
   box-shadow: 0 -29px 0 -1px #c13dd1, 0 -12px 0 -1px #53b6ff;
 }
 
 .voice-bars span:nth-child(2) {
   height: 74px;
+  animation-delay: -0.16s;
   background: #8b5ac9;
 }
 
 .voice-bars span:nth-child(3) {
   height: 49px;
+  animation-delay: 0s;
   background: #b689ef;
 }
 
 .voice-bars span:nth-child(4) {
   height: 54px;
+  animation-delay: -0.48s;
   background: #3020aa;
   box-shadow: 0 -23px 0 -1px #ffc400;
 }
 
 .voice-bars span:nth-child(5) {
   height: 25px;
+  animation-delay: -0.24s;
   background: #a6efff;
 }
 
-.voice-loading p {
+.voice-loading-error {
+  position: absolute;
+  top: 406px;
+  left: 20px;
+  right: 20px;
+  margin: 0;
+  color: #ffe4e4;
+  font-size: 13px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.voice-loading-policy {
   position: absolute;
   top: 522px;
   left: 50%;
@@ -82,4 +123,36 @@
   font-weight: 400;
   letter-spacing: -0.1px;
   box-shadow: 0 14px 24px rgba(0, 0, 0, 0.16);
+}
+
+@keyframes voice-bar-wave {
+  0%,
+  100% {
+    transform: scaleY(0.58);
+    opacity: 0.64;
+  }
+
+  38% {
+    transform: scaleY(1.08);
+    opacity: 1;
+  }
+
+  68% {
+    transform: scaleY(0.76);
+    opacity: 0.8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .voice-loading,
+  .voice-loading-content {
+    transition: none;
+    filter: none;
+  }
+
+  .voice-bars span {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }

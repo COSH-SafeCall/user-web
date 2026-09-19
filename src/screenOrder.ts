@@ -1,16 +1,15 @@
-﻿import type { Screen } from "./types";
+import type { Screen } from "./types";
 
 export const screenOrder: Screen[] = [
   "login",
-  "permissionToast",
   "profile",
   "contacts",
   "contactModal",
-  "terms",
   "permissionBasic",
   "permissionSos",
   "complete",
   "home",
+  "emergencyMessage",
   "personaUse",
   "personaPeople",
   "callSetupCheck",
@@ -18,10 +17,10 @@ export const screenOrder: Screen[] = [
   "callRinging",
   "call",
   "help",
-  "helpOpen",
   "setting",
   "settingDialog",
   "withdraw",
+  "deletionStatus",
   "editProfile",
   "editContacts",
   "soundSetting",

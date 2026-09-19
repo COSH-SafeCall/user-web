@@ -1,4 +1,4 @@
-﻿.bottom-button {
+.bottom-button {
   position: absolute;
   left: 50%;
   bottom: 20px;
@@ -14,6 +14,19 @@
   font-weight: 400;
   display: grid;
   place-items: center;
+  transition:
+    transform 0.12s ease,
+    filter 0.12s ease,
+    box-shadow 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.bottom-button.pressed,
+.bottom-button:active {
+  transform: translateX(-50%) scale(0.97);
+  filter: brightness(0.92);
+  box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.18);
 }
 
 .bottom-button.dark {
@@ -23,6 +36,11 @@
 .bottom-button.light {
   background: #f4f4f5;
   color: #000;
+}
+
+.bottom-button:disabled {
+  cursor: default;
+  filter: brightness(0.82);
 }
 
 .two-buttons {
@@ -46,6 +64,11 @@
   border-radius: 7px;
   font-size: 20px;
   line-height: 30px;
+}
+
+.two-buttons .bottom-button.pressed,
+.two-buttons .bottom-button:active {
+  transform: scale(0.97);
 }
 
 .two-buttons .bottom-button.dark {

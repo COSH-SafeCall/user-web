@@ -1,5 +1,5 @@
-﻿import "./styles/Call.css";
-import { useState } from "react";
+import "./styles/Call.css";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { IconType } from "react-icons";
 import {
   MdBluetooth,
@@ -8,10 +8,16 @@ import {
   MdMicOff,
   MdOutlineVideocam,
   MdVolumeUp,
+  MdWifiOff,
 } from "react-icons/md";
 import { PiCassetteTapeFill } from "react-icons/pi";
+import fatherAlternativeCallAudio from "../assets/audio/SafeCall_대체통화 - 아빠.mp3";
+import friendAlternativeCallAudio from "../assets/audio/SafeCall_대체통화_-_친구.mp3";
+import motherAlternativeCallAudio from "../assets/audio/SafeCall_대체통화_-_엄마.mp3";
 import { Canvas } from "../components/Canvas";
 import { RequirementErrorMessage } from "../components/RequirementErrorMessage";
+import { counterpartProfiles } from "../counterpartProfiles";
+import type { CallEndReason, CounterpartCode } from "../api/contracts";
 import type { Go } from "../types";
 
 type CallAction = {
@@ -20,8 +26,69 @@ type CallAction = {
   label: string;
 };
 
-export function Call({ go }: { go: Go }) {
+const alternativeCallAudioByCounterpart: Record<CounterpartCode, string> = {
+  FATHER: fatherAlternativeCallAudio,
+  MOTHER: motherAlternativeCallAudio,
+  FRIEND: friendAlternativeCallAudio,
+};
+
+const alternativeVoiceByCounterpart: Record<CounterpartCode, string> = {
+  FATHER: "중현",
+  MOTHER: "순이",
+  FRIEND: "재준",
+};
+
+const ATTRIBUTION_DISPLAY_MS = 5_000;
+
+function formatCallTime(elapsedSeconds: number) {
+  const minutes = Math.floor(elapsedSeconds / 60)
+    .toString()
+    .padStart(2, "0");
+  const seconds = (elapsedSeconds % 60).toString().padStart(2, "0");
+
+  return `${minutes}:${seconds}`;
+}
+
+export function Call({
+  go,
+  displayName,
+  counterpartCode,
+  connectedAt,
+  startInAlternativeMode = false,
+  onEnd,
+}: {
+  go: Go;
+  displayName: string;
+  counterpartCode: CounterpartCode;
+  connectedAt: number | null;
+  startInAlternativeMode?: boolean;
+  onEnd: (reason: CallEndReason) => Promise<void>;
+}) {
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [isAlternativeCallActive, setIsAlternativeCallActive] = useState(
+    startInAlternativeMode,
+  );
+  const [isCallEnding, setIsCallEnding] = useState(false);
   const [showUnavailableError, setShowUnavailableError] = useState(false);
+  const [showAlternativeCopyright, setShowAlternativeCopyright] = useState(
+    startInAlternativeMode,
+  );
+  const alternativeAudioRef = useRef<HTMLAudioElement | null>(null);
+  const endCallTimeoutRef = useRef<number | null>(null);
+  const attributionTimeoutRef = useRef<number | null>(null);
+  const counterpartProfile = counterpartProfiles[counterpartCode];
+  const setAlternativeAudioElement = useCallback(
+    (audio: HTMLAudioElement | null) => {
+      alternativeAudioRef.current = audio;
+      if (!audio || !startInAlternativeMode) return;
+
+      audio.currentTime = 0;
+      void audio.play().catch(() => {
+        setIsAlternativeCallActive(false);
+      });
+    },
+    [startInAlternativeMode],
+  );
   const actions: CallAction[] = [
     {
       icon: PiCassetteTapeFill,
@@ -55,15 +122,155 @@ export function Call({ go }: { go: Go }) {
     },
   ];
 
+  useEffect(() => {
+    if (connectedAt === null) {
+      setElapsedSeconds(0);
+      return;
+    }
+
+    const updateElapsedTime = () => {
+      setElapsedSeconds(
+        Math.max(0, Math.floor((Date.now() - connectedAt) / 1000)),
+      );
+    };
+
+    updateElapsedTime();
+    const intervalId = window.setInterval(updateElapsedTime, 1000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [connectedAt]);
+
+  useEffect(() => {
+    const alternativeAudio = alternativeAudioRef.current;
+
+    if (startInAlternativeMode) {
+      attributionTimeoutRef.current = window.setTimeout(() => {
+        setShowAlternativeCopyright(false);
+        attributionTimeoutRef.current = null;
+      }, ATTRIBUTION_DISPLAY_MS);
+    }
+
+    return () => {
+      if (endCallTimeoutRef.current) {
+        window.clearTimeout(endCallTimeoutRef.current);
+      }
+      if (attributionTimeoutRef.current) {
+        window.clearTimeout(attributionTimeoutRef.current);
+      }
+
+      alternativeAudio?.pause();
+    };
+  }, [startInAlternativeMode]);
+
+  const showAlternativeAttribution = () => {
+    if (attributionTimeoutRef.current) {
+      window.clearTimeout(attributionTimeoutRef.current);
+    }
+
+    setShowAlternativeCopyright(true);
+    attributionTimeoutRef.current = window.setTimeout(() => {
+      setShowAlternativeCopyright(false);
+      attributionTimeoutRef.current = null;
+    }, ATTRIBUTION_DISPLAY_MS);
+  };
+
+  const handleAlternativeCallClick = async () => {
+    if (isCallEnding) {
+      return;
+    }
+
+    await onEnd("SWITCH_TO_FALLBACK");
+    const alternativeAudio = alternativeAudioRef.current;
+
+    setIsAlternativeCallActive(true);
+    showAlternativeAttribution();
+
+    if (!alternativeAudio) {
+      return;
+    }
+
+    alternativeAudio.currentTime = 0;
+    alternativeAudio.play().catch(() => {
+      setIsAlternativeCallActive(false);
+    });
+  };
+
+  const handleEndCallClick = async () => {
+    if (isCallEnding) {
+      return;
+    }
+
+    alternativeAudioRef.current?.pause();
+    setShowUnavailableError(false);
+    setIsCallEnding(true);
+
+    await onEnd("USER_ENDED");
+
+    endCallTimeoutRef.current = window.setTimeout(() => {
+      go("home");
+    }, 420);
+  };
+
   return (
-    <Canvas className="call-gradient call-active">
-      <p className="call-time">00:00</p>
-      <h1>아빠</h1>
+    <Canvas
+      className={`call-gradient call-active call-connected${
+        isCallEnding ? " call-ending" : ""
+      }`}
+    >
+      {connectedAt === null && !isAlternativeCallActive && (
+        <div
+          className="call-connection-status"
+          role="status"
+          aria-label="Gemini Live 연결 중"
+        >
+          <MdWifiOff aria-hidden="true" />
+        </div>
+      )}
+      {showAlternativeCopyright && (
+        <div className="alt-call-attribution" role="status">
+          <b>타입캐스트로 제작된 AI 음성입니다.</b>
+          <span>
+            출연진: {alternativeVoiceByCounterpart[counterpartCode]} ·
+            typecast.ai
+          </span>
+        </div>
+      )}
+      <p className="call-time">{formatCallTime(elapsedSeconds)}</p>
+      <h1>{displayName}</h1>
+      <img
+        className={`call-profile-image ${counterpartProfile.imageClass}`}
+        src={counterpartProfile.image}
+        alt={`${displayName} 프로필`}
+      />
       <p className="call-hint">미리 녹음된 음성을 재생합니다.</p>
-      <button className="alt-call">대체통화</button>
+      {isAlternativeCallActive ? (
+        <p className="alt-call-status" aria-live="polite">
+          대체 통화 중입니다
+        </p>
+      ) : (
+        <button
+          className="alt-call"
+          disabled={isCallEnding}
+          onClick={() => void handleAlternativeCallClick()}
+        >
+          대체통화
+        </button>
+      )}
+      <audio
+        ref={setAlternativeAudioElement}
+        src={alternativeCallAudioByCounterpart[counterpartCode]}
+        loop
+        preload="auto"
+      />
       <section className="call-pad">
         {actions.map(({ icon: ActionIcon, iconClass, label }) => (
-          <button key={label} onClick={() => setShowUnavailableError(true)}>
+          <button
+            key={label}
+            disabled={isCallEnding || connectedAt === null}
+            onClick={() => setShowUnavailableError(true)}
+          >
             <ActionIcon
               className={`call-control-icon ${iconClass}`}
               aria-hidden="true"
@@ -71,7 +278,11 @@ export function Call({ go }: { go: Go }) {
             <span>{label}</span>
           </button>
         ))}
-        <button className="end" onClick={() => go("home")}>
+        <button
+          className="end"
+          disabled={isCallEnding}
+          onClick={() => void handleEndCallClick()}
+        >
           <MdCallEnd className="call-end-icon" aria-hidden="true" />
         </button>
       </section>

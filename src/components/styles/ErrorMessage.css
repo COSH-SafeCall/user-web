@@ -1,12 +1,14 @@
 ﻿.error-message {
   position: absolute;
-  top: 346px;
+  top: 50%;
   left: 50%;
   z-index: 30;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   width: 296px;
   min-height: 126px;
   border-radius: 20px;
+  display: flex;
+  flex-direction: column;
   background: #1e293b;
   padding: 31px 20px 24px;
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
@@ -29,13 +31,23 @@
   font-weight: 400;
 }
 
-.error-message button {
-  position: absolute;
-  right: 21px;
-  bottom: 18px;
+.error-message-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.error-message-actions button {
   color: #6366f1;
   font-size: 12px;
   line-height: 18px;
   font-weight: 500;
+}
+
+.error-message-actions .error-message-secondary {
+  color: rgba(255, 255, 255, 0.62);
 }
 

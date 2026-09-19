@@ -1,5 +1,6 @@
 ﻿.profile {
   background: #000;
+  overflow: clip;
 }
 
 .profile-form {
@@ -28,7 +29,7 @@
   background: #1e293b;
 }
 
-.segment span {
+.segment button {
   flex: 1;
   display: grid;
   place-items: center;
@@ -36,6 +37,11 @@
   font-size: 15px;
   line-height: 22px;
   font-weight: 400;
+}
+
+.segment button:disabled {
+  cursor: default;
+  opacity: 1;
 }
 
 .segment .selected {

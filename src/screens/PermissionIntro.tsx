@@ -1,13 +1,24 @@
 ﻿import "./styles/PermissionIntro.css";
+import { useEffect, useRef, useState } from "react";
 import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
 import { Icon } from "../components/Icon";
-import { useScale } from "../hooks/useScale";
 import type { Go, IconName } from "../types";
+import type { PermissionStatus as StoredPermissionStatus } from "../api/contracts";
+import {
+  requestLocationPermission,
+  requestMicrophonePermission,
+  toPermissionStatus,
+  type PermissionRequestResult,
+} from "../utils/browserPermissions";
 
 type PermissionIntroProps = {
   go: Go;
   sos: boolean;
+  onSavePermissions?: (permissions: Array<{
+    code: "MICROPHONE" | "LOCATION";
+    status: StoredPermissionStatus;
+  }>) => Promise<void>;
 };
 
 type PermissionRowProps = {
@@ -23,14 +34,6 @@ export const permissionCopy = {
     "마이크 권한이 필요합니다.",
   ].join(" "),
   micWarning: "마이크 권한을 허용하지 않을 시 서비스 이용이 불가합니다.",
-  micFeatureBody: [
-    "가상 통화 중 내 음성이 입력될 수 있도록",
-    "브라우저 상단바에서 마이크 기능이 켜져 있는지 확인해주세요.",
-  ].join(" "),
-  micFeatureWarning: [
-    "상단바에서 마이크 기능이 꺼져 있으면",
-    "AI 안심 통화를 사용할 수 없습니다.",
-  ].join(" "),
   locationBody: [
     "긴급 문자에 사용자의 현재 위치 안내 링크를 함께",
     "제공하기 위해 위치 권한이 필요합니다.",
@@ -39,58 +42,290 @@ export const permissionCopy = {
     "위치 권한을 허용하지 않을 시 긴급 문자에 위치 안내",
     "링크가 포함되지 않습니다.",
   ].join(" "),
-  sosBody: [
-    "앱 사용중이나 AI 안심 통화 서비스를 이용 중에",
-    "긴급한 상황 발생 시 안드로이드 시스템에 등록된",
-    "긴급번호로 전화를 연결하는 데 필요한 기능입니다.",
-  ].join(" "),
-  sosWarning: [
-    "긴급 SOS 기능은 SafeCall에서 제공하는 기능이 아닌,",
-    "안드로이드 시스템 자체에서 제공하는 기능입니다.",
-  ].join(" "),
 };
 
-export function PermissionIntro({ go, sos }: PermissionIntroProps) {
-  return (
-    <Canvas className="permission" style={useScale()}>
-      <h1>
-        {sos
-          ? "SafeCall 이용을 위해 아래의 기능이 켜져 있는지 확인해주세요."
-          : "SafeCall 이용을 위해 아래의 권한을 허용해주세요."}
-      </h1>
-      <section className="permission-list">
-        <PermissionRow
-          icon="mic"
-          title="마이크"
-          body={sos ? permissionCopy.micFeatureBody : permissionCopy.micBody}
-          warning={
-            sos ? permissionCopy.micFeatureWarning : permissionCopy.micWarning
-          }
+const PERMISSION_REQUEST_TIMEOUT_MS = 15_000;
+
+function getMicrophoneErrorMessage(result: PermissionRequestResult) {
+  if (result.reason === "unsupported") {
+    return "현재 브라우저에서 마이크 권한 요청을 지원하지 않습니다. 지원되는 브라우저에서 다시 시도해주세요.";
+  }
+
+  if (result.reason === "denied") {
+    return "마이크 권한이 거부되었습니다. 브라우저 사이트 설정에서 마이크 권한을 허용해주세요.";
+  }
+
+  return "마이크 권한을 확인하지 못했습니다. 마이크 연결 상태를 확인한 뒤 다시 시도해주세요.";
+}
+
+function getLocationWarningMessage(result: PermissionRequestResult) {
+  if (result.reason === "denied") {
+    return "위치 권한이 거부되었습니다. 브라우저 사이트 설정에서 위치 권한을 다시 허용할 수 있습니다.";
+  }
+
+  if (result.reason === "unsupported") {
+    return "현재 브라우저에서 위치 권한 요청을 지원하지 않아 위치 없이 진행합니다.";
+  }
+
+  if (result.reason === "timeout") {
+    return "현재 위치 확인 시간이 초과되어 위치 없이 진행합니다. 위치 권한 상태는 거부로 저장하지 않습니다.";
+  }
+
+  return "현재 위치를 확인하지 못해 위치 없이 진행합니다. 위치 권한 상태는 거부로 저장하지 않습니다.";
+}
+
+export function PermissionIntro({
+  go,
+  sos,
+  onSavePermissions,
+}: PermissionIntroProps) {
+  const [requesting, setRequesting] = useState(false);
+  const [requestTimedOut, setRequestTimedOut] = useState(false);
+  const requestingRef = useRef(false);
+  const requestAttemptRef = useRef(0);
+  const requestTimeoutRef = useRef<number | null>(null);
+  const [canContinueWithoutLocation, setCanContinueWithoutLocation] =
+    useState(false);
+  const [permissionMessage, setPermissionMessage] = useState<{
+    type: "error" | "warning";
+    text: string;
+  } | null>(null);
+
+  useEffect(() => {
+    return () => {
+      requestAttemptRef.current += 1;
+      if (requestTimeoutRef.current !== null) {
+        window.clearTimeout(requestTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (sos || !navigator.permissions?.query) return;
+
+    let disposed = false;
+    let status: PermissionStatus | null = null;
+
+    const handlePermissionChange = () => {
+      if (disposed || !status || requestingRef.current) return;
+
+      if (status.state === "granted") {
+        setCanContinueWithoutLocation(false);
+        setPermissionMessage(null);
+      } else if (status.state === "denied") {
+        setCanContinueWithoutLocation(true);
+        setPermissionMessage({
+          type: "warning",
+          text: "위치 권한이 거부되었습니다. 브라우저 사이트 설정에서 위치 권한을 다시 허용할 수 있습니다.",
+        });
+      }
+
+      if (status.state !== "prompt") {
+        void onSavePermissions?.([
+          {
+            code: "LOCATION",
+            status: status.state === "granted" ? "GRANTED" : "DENIED",
+          },
+        ]).catch(() => {
+          // 상위 공통 오류 모달에서 저장 실패를 안내합니다.
+        });
+      }
+    };
+
+    void navigator.permissions
+      .query({ name: "geolocation" })
+      .then((permissionStatus) => {
+        if (disposed) return;
+        status = permissionStatus;
+        status.addEventListener("change", handlePermissionChange);
+      })
+      .catch(() => {
+        // Permissions API를 지원하지 않으면 버튼을 눌렀을 때 다시 확인합니다.
+      });
+
+    return () => {
+      disposed = true;
+      status?.removeEventListener("change", handlePermissionChange);
+    };
+  }, [onSavePermissions, sos]);
+
+  const handleNext = async () => {
+    if (sos) {
+      go("complete");
+      return;
+    }
+
+    if (canContinueWithoutLocation && !requestTimedOut) {
+      go("permissionSos");
+      return;
+    }
+
+    if (requestingRef.current) {
+      return;
+    }
+
+    const attemptId = ++requestAttemptRef.current;
+    setRequesting(true);
+    setRequestTimedOut(false);
+    requestingRef.current = true;
+    setPermissionMessage(null);
+    if (requestTimeoutRef.current !== null) {
+      window.clearTimeout(requestTimeoutRef.current);
+    }
+    requestTimeoutRef.current = window.setTimeout(() => {
+      if (requestAttemptRef.current !== attemptId) return;
+      requestAttemptRef.current += 1;
+      requestingRef.current = false;
+      setRequesting(false);
+      setRequestTimedOut(true);
+      setPermissionMessage({
+        type: "warning",
+        text: "권한 응답이 지연되고 있습니다. 브라우저 권한 창을 확인한 뒤 재요청해주세요.",
+      });
+    }, PERMISSION_REQUEST_TIMEOUT_MS);
+
+    try {
+      const microphoneResult = await requestMicrophonePermission();
+      if (requestAttemptRef.current !== attemptId) return;
+
+      if (!microphoneResult.granted) {
+        await onSavePermissions?.([
+          {
+            code: "MICROPHONE",
+            status: toPermissionStatus(microphoneResult),
+          },
+        ]);
+        if (requestAttemptRef.current !== attemptId) return;
+        setPermissionMessage({
+          type: "error",
+          text: getMicrophoneErrorMessage(microphoneResult),
+        });
+        return;
+      }
+
+      const locationResult = await requestLocationPermission();
+      if (requestAttemptRef.current !== attemptId) return;
+
+      await onSavePermissions?.([
+        {
+          code: "MICROPHONE",
+          status: toPermissionStatus(microphoneResult),
+        },
+        {
+          code: "LOCATION",
+          status: toPermissionStatus(locationResult),
+        },
+      ]);
+      if (requestAttemptRef.current !== attemptId) return;
+
+      if (!locationResult.granted) {
+        setCanContinueWithoutLocation(true);
+        setPermissionMessage({
+          type: "warning",
+          text: getLocationWarningMessage(locationResult),
+        });
+        return;
+      }
+
+      setCanContinueWithoutLocation(false);
+      go("permissionSos");
+    } catch {
+      // 상위 공통 오류 모달을 표시하고 현재 화면에 머뭅니다.
+    } finally {
+      if (requestAttemptRef.current === attemptId) {
+        if (requestTimeoutRef.current !== null) {
+          window.clearTimeout(requestTimeoutRef.current);
+          requestTimeoutRef.current = null;
+        }
+        setRequesting(false);
+        requestingRef.current = false;
+      }
+    }
+  };
+
+  if (sos) {
+    return (
+      <Canvas
+        className="permission permission-device-check"
+        layout="onboarding"
+      >
+        <div className="onboarding-scroll device-check-scroll">
+          <h1>휴대전화의 긴급 SOS를 확인해주세요.</h1>
+          <section className="device-check-card" aria-label="긴급 SOS 확인 방법">
+            <div className="device-check-visual" aria-hidden="true">
+              <Icon name="settings" size={36} />
+            </div>
+            <h2>긴급 SOS 확인 방법</h2>
+            <p className="device-check-path">
+              설정 &gt; 안전 및 긴급 &gt; 긴급 SOS
+            </p>
+            <ol>
+              <li>
+                <b>1</b>
+                <span>휴대전화의 설정 앱을 엽니다.</span>
+              </li>
+              <li>
+                <b>2</b>
+                <span>안전 및 긴급 메뉴를 선택합니다.</span>
+              </li>
+              <li>
+                <b>3</b>
+                <span>긴급 SOS가 켜져 있는지 확인합니다.</span>
+              </li>
+            </ol>
+          </section>
+
+          <p className="device-check-note">
+            SafeCall은 기기의 긴급 SOS 설정을 직접 확인하거나 변경할 수
+            없습니다. 실제 긴급 상황에서는 112 또는 119에 직접 연락해주세요.
+          </p>
+        </div>
+        <BottomButton
+          label="설정을 확인했어요"
+          onClick={() => go("complete")}
+          immediate
         />
-        {!sos && (
+      </Canvas>
+    );
+  }
+
+  return (
+    <Canvas className="permission" layout="onboarding">
+      <div className="onboarding-scroll">
+        <h1>SafeCall 이용을 위해 아래의 권한을 허용해주세요.</h1>
+        <section className="permission-list">
+          <PermissionRow
+            icon="mic"
+            title="마이크"
+            body={permissionCopy.micBody}
+            warning={permissionCopy.micWarning}
+          />
           <PermissionRow
             icon="location_on"
             title="위치"
             body={permissionCopy.locationBody}
             warning={permissionCopy.locationWarning}
           />
+        </section>
+        {permissionMessage && (
+          <p className={`permission-message ${permissionMessage.type}`}>
+            {permissionMessage.text}
+          </p>
         )}
-        {sos && (
-          <PermissionRow
-            icon="mic"
-            title="긴급 SOS"
-            body={permissionCopy.sosBody}
-            warning={permissionCopy.sosWarning}
-          />
-        )}
-      </section>
-      <p className="sos-warning">
-        실제 119나 112에 신고가 갈 수 있으므로, SafeCall은 112 긴급 호출
-        기능을 제어할 수 없으므로 신중한 사용을 권장합니다.
-      </p>
+      </div>
       <BottomButton
-        label="다음"
-        onClick={() => go(sos ? "complete" : "permissionSos")}
+        label={
+          requesting
+            ? "권한 요청 중..."
+            : requestTimedOut
+              ? "재요청"
+            : canContinueWithoutLocation
+              ? "위치 없이 다음"
+              : "권한 허용하기"
+        }
+        onClick={handleNext}
+        disabled={requesting}
+        immediate
       />
     </Canvas>
   );
@@ -115,4 +350,3 @@ export function PermissionRow({
     </div>
   );
 }
-

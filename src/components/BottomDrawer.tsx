@@ -16,7 +16,11 @@ export function BottomDrawer({ screen }: BottomDrawerProps) {
   }
 
   return (
-    <div className={`bottom-drawer ${open ? "open" : "closed"} home-drawer`}>
+    <div
+      className={`bottom-drawer ${open ? "open" : "closed"} home-drawer${
+        screen === "home" ? " with-demo-limits" : ""
+      }`}
+    >
       <section
         className="bottom-drawer-panel"
         onClick={open ? () => setOpen(false) : undefined}
@@ -40,9 +44,16 @@ export function BottomDrawer({ screen }: BottomDrawerProps) {
             <br />
             <br />
             긴급 호출 기능(긴급 SOS 기능)은 SafeCall 과 별개로 항상 작동되니
-            실수로 실행시키지 않도록 주의해 주십시오. 긴급 문자 보내기 기능은
-            앱 실행중에만 실행 가능합니다.
+            실수로 실행시키지 않도록 주의해 주십시오.
           </p>
+          {screen === "home" && (
+            <p className="bottom-drawer-demo-limit">
+              웹 데모 안심 통화는 약 1분간 체험할 수 있습니다.
+              <br />
+              통화 요청은 게스트 하루 최대 2회, 로그인 사용자는 하루 최대
+              3회입니다.
+            </p>
+          )}
         </div>
       </section>
     </div>

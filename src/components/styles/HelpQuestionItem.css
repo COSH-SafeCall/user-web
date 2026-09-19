@@ -4,6 +4,7 @@
   border-bottom: 1px solid #455269;
   display: grid;
   grid-template-columns: 1fr 24px;
+  grid-template-rows: 49px auto;
   align-items: center;
   text-align: left;
 }
@@ -16,10 +17,19 @@
   font-size: 12px;
 }
 
-.help-question-item p {
+.help-question-item .icon {
+  transition: transform 180ms ease;
+}
+
+.help-question-item.open .icon {
+  transform: rotate(90deg);
+}
+
+.help-question-item .help-answer {
+  display: block;
   grid-column: 1 / -1;
   color: #9ca3af;
   font-size: 10px;
   line-height: 16px;
-  margin: 14px 0;
+  padding: 0 0 14px;
 }

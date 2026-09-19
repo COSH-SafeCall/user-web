@@ -1,29 +1,59 @@
 ﻿import "../components/styles/Avatar.css";
 import "./styles/Contacts.css";
-import { useState } from "react";
-import { MdPerson } from "react-icons/md";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { MdDeleteOutline, MdPerson } from "react-icons/md";
 import { BottomButton } from "../components/BottomButton";
 import { Canvas } from "../components/Canvas";
 import { Header } from "../components/Header";
 import { Icon } from "../components/Icon";
+import {
+  fixedEmergencyContacts,
+  type FixedEmergencyContact,
+} from "../fixedUserData";
 import { useScale } from "../hooks/useScale";
 import type { Go } from "../types";
 
+export type EmergencyContact = {
+  id: string;
+  slot: 1 | 2;
+  name: string;
+  relation: string;
+  phone: string;
+  version: number;
+};
+
 type ContactsProps = {
   go: Go;
+  contacts: EmergencyContact[];
+  onAddContact: (contact: FixedEmergencyContact) => Promise<void>;
+  onDeleteContact: (contact: EmergencyContact) => Promise<void>;
   modal?: boolean;
   edit?: boolean;
 };
 
-const phonePattern = /^010-\d{4}-\d{4}$/;
+export function Contacts({
+  go,
+  contacts,
+  onAddContact,
+  onDeleteContact,
+  modal,
+  edit,
+}: ContactsProps) {
+  const canAddContact = contacts.length < 2;
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [pendingDeleteContact, setPendingDeleteContact] =
+    useState<EmergencyContact | null>(null);
+  const showAddModal = modal || (edit && isAddModalOpen);
+  const closeAddModal = () => {
+    if (edit) {
+      setIsAddModalOpen(false);
+    } else {
+      go("contacts");
+    }
+  };
 
-function isValidPhoneNumber(phone: string) {
-  return phonePattern.test(phone.trim());
-}
-
-export function Contacts({ go, modal, edit }: ContactsProps) {
   return (
-    <Canvas className="contacts" style={useScale()}>
+    <Canvas className="contacts" layout="scroll" style={useScale()}>
       {edit && <Header title="비상 연락처 수정" back={() => go("setting")} />}
       {!edit && (
         <div className="contact-copy">
@@ -40,71 +70,142 @@ export function Contacts({ go, modal, edit }: ContactsProps) {
         </div>
       )}
       <section
-        className={`contact-area ${modal ? "under-modal" : ""} ${
-          edit ? "edit" : ""
-        }`}
+        className={`contact-area ${contacts.length === 0 ? "empty" : ""} ${
+          showAddModal ? "under-modal" : ""
+        } ${edit ? "edit" : ""}`}
       >
-        <ContactCard />
-        <button className="plus" onClick={() => go("contactModal")}>
-          <Icon name="add" size={40} />
-        </button>
+        {contacts.map((contact) => (
+          <ContactCard
+            key={contact.id}
+            contact={contact}
+            deletable={Boolean(edit)}
+            onDelete={() => setPendingDeleteContact(contact)}
+          />
+        ))}
+        {canAddContact && (
+          <FeedbackButton
+            className="plus"
+            ariaLabel="비상 연락처 추가"
+            onClick={() => {
+              if (edit) {
+                setIsAddModalOpen(true);
+              } else {
+                go("contactModal");
+              }
+            }}
+          >
+            <Icon name="add" size={40} />
+          </FeedbackButton>
+        )}
       </section>
-      {!edit && <BottomButton label="다음" onClick={() => go("terms")} />}
-      {modal && (
+      {!edit && (
+        <BottomButton label="다음" onClick={() => go("permissionBasic")} />
+      )}
+      {showAddModal && canAddContact && (
         <div className="modal-layer">
-          <ContactModal go={go} />
+          <ContactModal
+            onClose={closeAddModal}
+            contact={fixedEmergencyContacts[contacts.length]}
+            onAddContact={onAddContact}
+          />
+        </div>
+      )}
+      {edit && pendingDeleteContact && (
+        <div className="modal-layer">
+          <section
+            className="contact-delete-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="contact-delete-title"
+          >
+            <h2 id="contact-delete-title">긴급 연락처를 삭제할까요?</h2>
+            <p>
+              {pendingDeleteContact.name} 연락처가 목록에서 삭제됩니다. 삭제 후
+              다시 추가할 수 있습니다.
+            </p>
+            <div>
+              <button
+                type="button"
+                onClick={() => setPendingDeleteContact(null)}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void onDeleteContact(pendingDeleteContact)
+                    .then(() => {
+                      setPendingDeleteContact(null);
+                    })
+                    .catch(() => undefined);
+                }}
+              >
+                삭제
+              </button>
+            </div>
+          </section>
         </div>
       )}
     </Canvas>
   );
 }
 
-function ContactCard() {
+function ContactCard({
+  contact,
+  deletable,
+  onDelete,
+}: {
+  contact: EmergencyContact;
+  deletable: boolean;
+  onDelete: () => void;
+}) {
   return (
     <div className="contact-card">
       <div className="avatar">
         <MdPerson className="profile-person-icon" aria-hidden="true" />
       </div>
-      <div>
-        <b>보호자 1</b>
-        <span>관계</span>
+      <div className="contact-card-info">
+        <b>{contact.name}</b>
+        <span>{contact.relation}</span>
       </div>
+      {deletable && (
+        <button
+          type="button"
+          className="contact-delete-button"
+          onClick={onDelete}
+          aria-label={`${contact.name} 연락처 삭제`}
+        >
+          <MdDeleteOutline aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
 }
 
-function ContactModal({ go }: { go: Go }) {
-  const [name, setName] = useState("보호자 2");
-  const [relation, setRelation] = useState("어머니");
-  const [phone, setPhone] = useState("010-0000-0000");
-  const [nameError, setNameError] = useState(false);
-  const [phoneError, setPhoneError] = useState(false);
+function ContactModal({
+  onClose,
+  contact,
+  onAddContact,
+}: {
+  onClose: () => void;
+  contact: FixedEmergencyContact;
+  onAddContact: (contact: FixedEmergencyContact) => Promise<void>;
+}) {
+  const [adding, setAdding] = useState(false);
 
-  const addContact = () => {
-    const hasNameError = name.trim().length === 0;
-    const hasPhoneError = !isValidPhoneNumber(phone);
-
-    setNameError(hasNameError);
-    setPhoneError(hasPhoneError);
-
-    if (hasNameError || hasPhoneError) {
+  const addContact = async () => {
+    if (adding) {
       return;
     }
 
-    go("contacts");
-  };
-
-  const changeName = (value: string) => {
-    setName(value);
-    if (nameError) {
-      setNameError(false);
-    }
-  };
-
-  const changePhone = (value: string) => {
-    setPhone(value);
-    if (phoneError) {
-      setPhoneError(false);
+    setAdding(true);
+    try {
+      await onAddContact(contact);
+      onClose();
+    } catch {
+      // 상위 공통 오류 모달을 유지하고 현재 추가 모달에 머뭅니다.
+    } finally {
+      setAdding(false);
     }
   };
 
@@ -119,47 +220,99 @@ function ContactModal({ go }: { go: Go }) {
         <span />
         <span />
       </button>
-      <ModalField
-        label="이름"
-        value={name}
-        onChange={changeName}
-        error={nameError ? "이름을 빈칸으로 둘 수 없습니다." : undefined}
-      />
-      <ModalField label="관계" value={relation} onChange={setRelation} />
-      <ModalField
-        label="전화번호"
-        value={phone}
-        onChange={changePhone}
-        error={phoneError ? "전화번호의 형식이 올바르지 않습니다." : undefined}
-      />
+      <ModalField label="이름" value={contact.name} />
+      <ModalField label="관계" value={contact.relation} />
+      <ModalField label="전화번호" value={contact.phone} />
       <div className="contact-modal-actions">
-        <button type="button" onClick={() => go("contacts")}>
+        <FeedbackButton
+          className="contact-action-button"
+          onClick={onClose}
+        >
           취소
-        </button>
-        <button type="button" onClick={addContact}>
-          추가
-        </button>
+        </FeedbackButton>
+        <FeedbackButton
+          className="contact-action-button"
+          onClick={() => void addContact()}
+          disabled={adding}
+        >
+          {adding ? "추가 중..." : "추가"}
+        </FeedbackButton>
       </div>
     </div>
+  );
+}
+
+function FeedbackButton({
+  children,
+  className,
+  ariaLabel,
+  onClick,
+  disabled,
+}: {
+  children: ReactNode;
+  className: string;
+  ariaLabel?: string;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  const [pressed, setPressed] = useState(false);
+  const feedbackTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimerRef.current !== null) {
+        window.clearTimeout(feedbackTimerRef.current);
+      }
+    };
+  }, []);
+
+  const stopPressFeedback = () => {
+    if (feedbackTimerRef.current === null) {
+      setPressed(false);
+    }
+  };
+
+  const handleClick = () => {
+    if (disabled || feedbackTimerRef.current !== null) {
+      return;
+    }
+
+    setPressed(true);
+    feedbackTimerRef.current = window.setTimeout(() => {
+      setPressed(false);
+      feedbackTimerRef.current = null;
+      onClick();
+    }, 110);
+  };
+
+  return (
+    <button
+      className={`${className} ${pressed ? "pressed" : ""}`}
+      type="button"
+      disabled={disabled}
+      aria-label={ariaLabel}
+      onPointerDown={() => setPressed(true)}
+      onPointerLeave={stopPressFeedback}
+      onPointerCancel={stopPressFeedback}
+      onPointerUp={stopPressFeedback}
+      onClick={handleClick}
+    >
+      {children}
+    </button>
   );
 }
 
 function ModalField({
   label,
   value,
-  onChange,
-  error,
 }: {
   label: string;
   value: string;
-  onChange: (value: string) => void;
-  error?: string;
 }) {
   return (
-    <label className={`modal-field ${error ? "error" : ""}`}>
+    <label className="modal-field">
       <span>{label}</span>
-      <input value={value} onChange={(event) => onChange(event.target.value)} />
-      {error && <small>{error}</small>}
+      <input value={value} readOnly />
     </label>
   );
 }

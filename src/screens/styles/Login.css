@@ -1,6 +1,10 @@
 ﻿.login {
   background: #6366f1;
   position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: auto;
+  -webkit-overflow-scrolling: touch;
   --login-brand-top: clamp(250px, 33.18%, 304px);
   --login-actions-top: clamp(589px, 78.15%, 716px);
 }
@@ -51,6 +55,21 @@
   display: flex;
   flex-direction: column;
   gap: 13px;
+}
+
+.virtual-signup-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.virtual-signup-notice {
+  margin: 0;
+  color: #fff;
+  text-align: center;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
 }
 
 .guest-button {

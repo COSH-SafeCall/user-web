@@ -1,5 +1,22 @@
-﻿.call-gradient {
+﻿.canvas.call-gradient {
   background: linear-gradient(180deg, #4a4f60 0%, #000 50%, #444365 100%);
+}
+
+.canvas.call-ringing {
+  overflow: hidden;
+  animation: call-ringing-enter 0.32s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+@keyframes call-ringing-enter {
+  0% {
+    opacity: 0;
+    filter: brightness(0.86);
+  }
+
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
 }
 
 .ring-title {
@@ -7,11 +24,13 @@
   top: 161px;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 2;
   width: min(calc(100% - 80px), 260px);
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  animation: ring-title-enter 0.38s cubic-bezier(0.22, 0.25, 0, 1) 0.04s both;
 }
 
 .ring-title p {
@@ -38,11 +57,24 @@
   margin-top: 18px;
 }
 
+.call-profile-image.father {
+  object-position: 56% 30%;
+}
+
+.call-profile-image.mother {
+  object-position: 50% 28%;
+}
+
+.call-profile-image.friend {
+  object-position: 47% 27%;
+}
+
 .ring-warning {
   position: absolute;
   top: 510px;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 2;
   width: 120px;
   margin: 0;
   text-align: center;
@@ -50,6 +82,7 @@
   font-size: 10px;
   line-height: 13px;
   font-weight: 400;
+  animation: ring-warning-enter 0.34s cubic-bezier(0.22, 0.25, 0, 1) 0.1s both;
 }
 
 .ring-warning .icon {
@@ -63,25 +96,55 @@
   left: 46px;
   right: 46px;
   bottom: 69px;
+  z-index: 2;
   display: flex;
   justify-content: space-between;
+  animation: ring-actions-enter 0.38s cubic-bezier(0.22, 0.25, 0, 1) 0.14s both;
 }
 
 .ring-actions button {
+  position: relative;
   width: 76px;
   height: 76px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
   display: grid;
   place-items: center;
+  isolation: isolate;
+  touch-action: none;
+  user-select: none;
+  transition: transform 140ms ease-out, opacity 140ms ease-out;
+}
+
+.ring-actions button.dragging {
+  transition: none;
+}
+
+.ring-actions.answer-active .decline,
+.ring-actions.decline-active .answer {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.ring-actions button::before,
+.ring-actions button::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
 }
 
 .ring-actions button::before {
-  content: "";
-  position: absolute;
+  z-index: 1;
   width: 54px;
   height: 54px;
-  border-radius: 50%;
+}
+
+.ring-actions button::after {
+  z-index: 0;
+  inset: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  animation: ring-button-ripple 1.7s ease-out infinite;
 }
 
 .ring-actions .answer::before {
@@ -99,21 +162,192 @@
 
 .ring-call-icon {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: 32px;
   height: 32px;
   color: #fff;
 }
 
+@keyframes ring-title-enter {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(12px) scale(0.985);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes ring-warning-enter {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes ring-actions-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ring-button-ripple {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+
+  70%,
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+
+
 .call-active {
   position: relative;
   display: block;
   color: #fff;
+  overflow: hidden;
+}
+
+.call-connection-status {
+  position: absolute;
+  top: 44px;
+  left: 28px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: rgba(255, 255, 255, 0.92);
+  animation: call-connection-status-pulse 1.25s ease-in-out infinite;
+}
+
+.call-connection-status svg {
+  width: 24px;
+  height: 24px;
+}
+
+.alt-call-attribution {
+  position: absolute;
+  top: 52px;
+  left: 50%;
+  z-index: 6;
+  transform: translateX(-50%);
+  width: min(calc(100% - 96px), 270px);
+  min-height: 48px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  color: #fff;
+  background: rgba(22, 25, 35, 0.9);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
+  text-align: center;
+  animation: alt-call-attribution-enter 240ms ease both;
+}
+
+.alt-call-attribution b {
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 700;
+}
+
+.alt-call-attribution span {
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 9px;
+  line-height: 13px;
+}
+
+@keyframes alt-call-attribution-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes call-connection-status-pulse {
+  0%,
+  100% {
+    opacity: 0.28;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.canvas.call-connected {
+  animation: call-connected-enter 0.3s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+.call-connected .call-time,
+.call-connected h1,
+.call-connected > .call-profile-image,
+.call-connected .call-hint,
+.call-connected .alt-call,
+.call-connected .alt-call-status,
+.call-connected .call-pad,
+.call-connected .call-bottom {
+  animation: call-connected-content-enter 0.34s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+.call-connected .call-pad {
+  animation-delay: 0.04s;
+}
+
+.call-connected .call-bottom {
+  animation-delay: 0.08s;
+}
+
+@keyframes call-connected-enter {
+  0% {
+    opacity: 0;
+    filter: brightness(0.9);
+  }
+
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+@keyframes call-connected-content-enter {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 .call-time {
   position: absolute;
-  top: 115px;
+  top: var(--call-time-top, 115px);
   left: 0;
   right: 0;
   margin: 0;
@@ -125,7 +359,7 @@
 
 .call-active h1 {
   position: absolute;
-  top: 186px;
+  top: var(--call-title-top, 186px);
   left: 0;
   right: 0;
   margin: 0;
@@ -136,9 +370,20 @@
   letter-spacing: -0.4px;
 }
 
+.call-active > .call-profile-image {
+  position: absolute;
+  top: var(--call-profile-top, 250px);
+  left: 50%;
+  width: 112px;
+  height: 112px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .call-hint {
   position: absolute;
-  top: 407px;
+  top: var(--call-hint-top, 407px);
   left: 0;
   right: 0;
   margin: 0;
@@ -150,7 +395,7 @@
 
 .alt-call {
   position: absolute;
-  top: 438px;
+  top: var(--call-alt-top, 438px);
   left: 50%;
   transform: translateX(-50%);
   width: 98px;
@@ -164,22 +409,154 @@
   font-weight: 700;
 }
 
+.alt-call-status {
+  position: absolute;
+  top: var(--call-alt-status-top, 444px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180px;
+  margin: 0;
+  text-align: center;
+  color: #fff;
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 700;
+  animation: alt-call-status-pulse 1.35s ease-in-out infinite;
+}
+
+@keyframes alt-call-status-pulse {
+  0%,
+  100% {
+    opacity: 0.32;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.canvas.call-ending {
+  pointer-events: none;
+}
+
+.canvas.call-ending::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.46);
+  animation: call-ending-dim 0.42s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+.call-ending .call-time,
+.call-ending h1,
+.call-ending > .call-profile-image,
+.call-ending .call-hint,
+.call-ending .alt-call,
+.call-ending .alt-call-status,
+.call-ending .call-bottom {
+  animation: call-ending-content-exit 0.28s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+.call-ending .call-pad {
+  animation: call-ending-pad-exit 0.42s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+.call-ending .call-pad button:not(.end) {
+  animation: call-ending-control-exit 0.22s cubic-bezier(0.22, 0.25, 0, 1) both;
+}
+
+.call-ending .call-pad .end {
+  animation: call-ending-end-button 0.42s cubic-bezier(0.2, 0.7, 0.25, 1) both;
+}
+
+@keyframes call-ending-dim {
+  0% {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+
+  100% {
+    opacity: 1;
+    backdrop-filter: blur(4px);
+  }
+}
+
+@keyframes call-ending-content-exit {
+  0% {
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 0;
+    filter: blur(3px);
+  }
+}
+
+@keyframes call-ending-control-exit {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+}
+
+@keyframes call-ending-pad-exit {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(112px) scale(0.985);
+  }
+}
+
+@keyframes call-ending-end-button {
+  0% {
+    transform: translateX(-50%) scale(1);
+    filter: brightness(1);
+  }
+
+  36% {
+    transform: translateX(-50%) scale(0.88);
+    filter: brightness(0.86);
+  }
+
+  100% {
+    transform: translateX(-50%) translateY(38px) scale(0.72);
+    filter: brightness(0.7);
+  }
+}
+
+.call-connected .alt-call-status {
+  animation:
+    call-connected-content-enter 0.34s cubic-bezier(0.22, 0.25, 0, 1) both,
+    alt-call-status-pulse 1.35s ease-in-out 0.34s infinite;
+}
+
 .call-pad {
   position: absolute;
-  top: 482px;
+  top: var(--call-pad-top, 482px);
   left: 50%;
   transform: translateX(-50%);
   width: min(calc(100% - 84px), 318px);
-  height: 324px;
+  height: var(--call-pad-height, 324px);
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.34);
-  padding: 56px 34px 0;
+  padding: var(--call-pad-padding-top, 56px) 34px 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-template-rows: repeat(2, 63px);
+  grid-template-rows: repeat(2, var(--call-pad-row-height, 63px));
   align-content: start;
   column-gap: 26px;
-  row-gap: 19px;
+  row-gap: var(--call-pad-row-gap, 19px);
 }
 
 .call-pad button {
@@ -238,7 +615,7 @@
 .call-pad .end {
   position: absolute;
   left: 50%;
-  bottom: 26px;
+  bottom: var(--call-end-bottom, 26px);
   transform: translateX(-50%);
   width: 60px;
   height: 60px;
@@ -260,7 +637,7 @@
 
 .call-bottom {
   position: absolute;
-  top: 814px;
+  top: var(--call-bottom-top, 814px);
   left: 50%;
   transform: translateX(-50%);
   width: min(calc(100% - 60px), 360px);
@@ -270,4 +647,42 @@
   font-size: 10px;
   line-height: 15px;
   font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas.call-ringing,
+  .ring-title,
+  .ring-warning,
+  .ring-actions,
+  .call-connection-status,
+  .canvas.call-connected,
+  .canvas.call-ending,
+  .canvas.call-ending::after,
+  .call-connected .call-time,
+  .call-connected h1,
+  .call-connected > .call-profile-image,
+  .call-connected .call-hint,
+  .call-connected .alt-call,
+  .call-connected .alt-call-status,
+  .call-connected .call-pad,
+  .call-connected .call-bottom,
+  .alt-call-attribution,
+  .call-ending .call-time,
+  .call-ending h1,
+  .call-ending > .call-profile-image,
+  .call-ending .call-hint,
+  .call-ending .alt-call,
+  .call-ending .alt-call-status,
+  .call-ending .call-bottom,
+  .call-ending .call-pad,
+  .call-ending .call-pad button:not(.end),
+  .call-ending .call-pad .end,
+  .alt-call-status,
+  .ring-actions button::after {
+    animation: none;
+  }
+
+  .ring-actions button::after {
+    opacity: 0;
+  }
 }

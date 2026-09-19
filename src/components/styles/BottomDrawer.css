@@ -1,4 +1,4 @@
-﻿.bottom-drawer {
+.bottom-drawer {
   position: absolute;
   left: 0;
   right: 0;
@@ -72,5 +72,25 @@
   font-weight: 900;
 }
 
+.home-drawer.with-demo-limits,
+.home-drawer.with-demo-limits .bottom-drawer-panel {
+  height: min(280px, calc(100dvh - 24px));
+}
 
+.home-drawer.with-demo-limits .bottom-drawer-panel {
+  overflow-y: auto;
+  padding-bottom: 24px;
+  scrollbar-width: none;
+}
 
+.home-drawer.with-demo-limits .bottom-drawer-panel::-webkit-scrollbar {
+  display: none;
+}
+
+.home-drawer .bottom-drawer-demo-limit {
+  margin-top: 14px;
+  color: #c6cbd5;
+  font-size: 12px;
+  line-height: 18px;
+  word-break: keep-all;
+}
