@@ -132,11 +132,40 @@
   }
 
   .app-root {
+    --mobile-screen-background: #000;
     height: var(--app-height, 100dvh);
     min-height: var(--app-height, 100dvh);
     align-items: stretch;
     overflow: hidden;
-    background: #000;
+    background: var(--mobile-screen-background);
+  }
+
+  .app-root[data-screen="login"] {
+    --mobile-screen-background: #6366f1;
+  }
+
+  .app-root[data-screen="complete"] {
+    --mobile-screen-background: linear-gradient(
+      180deg,
+      #a8a8cd 0%,
+      #6366f1 48%,
+      #34327f 100%
+    );
+  }
+
+  .app-root[data-screen="callSetupCheck"],
+  .app-root[data-screen="voiceLoading"] {
+    --mobile-screen-background: #455269;
+  }
+
+  .app-root[data-screen="callRinging"],
+  .app-root[data-screen="call"] {
+    --mobile-screen-background: linear-gradient(
+      180deg,
+      #4a4f60 0%,
+      #000 50%,
+      #444365 100%
+    );
   }
 
   .desktop-shell {

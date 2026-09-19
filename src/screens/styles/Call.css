@@ -288,7 +288,7 @@
 
 .call-time {
   position: absolute;
-  top: 115px;
+  top: var(--call-time-top, 115px);
   left: 0;
   right: 0;
   margin: 0;
@@ -300,7 +300,7 @@
 
 .call-active h1 {
   position: absolute;
-  top: 186px;
+  top: var(--call-title-top, 186px);
   left: 0;
   right: 0;
   margin: 0;
@@ -313,7 +313,7 @@
 
 .call-active > .call-profile-image {
   position: absolute;
-  top: 250px;
+  top: var(--call-profile-top, 250px);
   left: 50%;
   width: 112px;
   height: 112px;
@@ -324,7 +324,7 @@
 
 .call-hint {
   position: absolute;
-  top: 407px;
+  top: var(--call-hint-top, 407px);
   left: 0;
   right: 0;
   margin: 0;
@@ -336,7 +336,7 @@
 
 .alt-call {
   position: absolute;
-  top: 438px;
+  top: var(--call-alt-top, 438px);
   left: 50%;
   transform: translateX(-50%);
   width: 98px;
@@ -352,7 +352,7 @@
 
 .alt-call-status {
   position: absolute;
-  top: 444px;
+  top: var(--call-alt-status-top, 444px);
   left: 50%;
   transform: translateX(-50%);
   width: 180px;
@@ -484,20 +484,20 @@
 
 .call-pad {
   position: absolute;
-  top: 482px;
+  top: var(--call-pad-top, 482px);
   left: 50%;
   transform: translateX(-50%);
   width: min(calc(100% - 84px), 318px);
-  height: min(324px, calc(100% - 500px));
+  height: var(--call-pad-height, 324px);
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.34);
-  padding: 56px 34px 0;
+  padding: var(--call-pad-padding-top, 56px) 34px 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-template-rows: repeat(2, 63px);
+  grid-template-rows: repeat(2, var(--call-pad-row-height, 63px));
   align-content: start;
   column-gap: 26px;
-  row-gap: 19px;
+  row-gap: var(--call-pad-row-gap, 19px);
 }
 
 .call-pad button {
@@ -556,7 +556,7 @@
 .call-pad .end {
   position: absolute;
   left: 50%;
-  bottom: 26px;
+  bottom: var(--call-end-bottom, 26px);
   transform: translateX(-50%);
   width: 60px;
   height: 60px;
@@ -578,7 +578,7 @@
 
 .call-bottom {
   position: absolute;
-  top: min(814px, calc(100% - 18px));
+  top: var(--call-bottom-top, 814px);
   left: 50%;
   transform: translateX(-50%);
   width: min(calc(100% - 60px), 360px);

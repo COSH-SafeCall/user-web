@@ -81,6 +81,16 @@
     transform: scale(var(--fixed-layout-scale, 1));
     transform-origin: top left;
   }
+
+  .canvas-layout-fixed.home,
+  .canvas-layout-fixed.call-ringing,
+  .canvas-layout-fixed.call-active {
+    width: var(--wide-layout-width, var(--fixed-layout-width, 100%));
+    height: var(--wide-layout-height, var(--fixed-layout-height, 100%));
+    transform: scale(
+      var(--wide-layout-scale, var(--fixed-layout-scale, 1))
+    );
+  }
 }
 
 @media (min-width: 601px) {

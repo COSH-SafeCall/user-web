@@ -94,7 +94,8 @@ type SafeCallHistoryState = {
 
 const DEMO_CLOSING_LEAD_MS = 15_000;
 const REFERENCE_VIEWPORT_WIDTH = 402;
-const FIXED_LAYOUT_CONTENT_HEIGHT = 810;
+const REFERENCE_VIEWPORT_HEIGHT = 874;
+const WIDE_LAYOUT_MIN_HEIGHT = 760;
 
 function applyViewportLayoutVariables() {
   const viewport = window.visualViewport;
@@ -113,7 +114,21 @@ function applyViewportLayoutVariables() {
   const fixedLayoutScale = Math.min(
     1,
     mobileFrameWidth / REFERENCE_VIEWPORT_WIDTH,
-    viewportHeight / FIXED_LAYOUT_CONTENT_HEIGHT,
+    viewportHeight / REFERENCE_VIEWPORT_HEIGHT,
+  );
+  const wideLayoutScale = Math.min(
+    1,
+    mobileFrameWidth / REFERENCE_VIEWPORT_WIDTH,
+    viewportHeight / WIDE_LAYOUT_MIN_HEIGHT,
+  );
+  const wideLayoutHeight = viewportHeight / wideLayoutScale;
+  const verticalCompression = Math.min(
+    1,
+    Math.max(
+      0,
+      (REFERENCE_VIEWPORT_HEIGHT - wideLayoutHeight) /
+        (REFERENCE_VIEWPORT_HEIGHT - WIDE_LAYOUT_MIN_HEIGHT),
+    ),
   );
 
   document.documentElement.style.setProperty(
@@ -132,6 +147,37 @@ function applyViewportLayoutVariables() {
     "--fixed-layout-height",
     `${viewportHeight / fixedLayoutScale}px`,
   );
+  document.documentElement.style.setProperty(
+    "--wide-layout-scale",
+    String(wideLayoutScale),
+  );
+  document.documentElement.style.setProperty(
+    "--wide-layout-width",
+    `${mobileFrameWidth / wideLayoutScale}px`,
+  );
+  document.documentElement.style.setProperty(
+    "--wide-layout-height",
+    `${wideLayoutHeight}px`,
+  );
+  const callLayoutValues = {
+    "--call-time-top": 115 - 27 * verticalCompression,
+    "--call-title-top": 186 - 38 * verticalCompression,
+    "--call-profile-top": 250 - 40 * verticalCompression,
+    "--call-hint-top": 407 - 57 * verticalCompression,
+    "--call-alt-top": 438 - 59 * verticalCompression,
+    "--call-alt-status-top": 444 - 59 * verticalCompression,
+    "--call-pad-top": 482 - 62 * verticalCompression,
+    "--call-pad-height": 324 - 14 * verticalCompression,
+    "--call-pad-padding-top": 56 - 16 * verticalCompression,
+    "--call-pad-row-height": 63 - 5 * verticalCompression,
+    "--call-pad-row-gap": 19 - 7 * verticalCompression,
+    "--call-end-bottom": 26 - 10 * verticalCompression,
+    "--call-bottom-top": 814 - 76 * verticalCompression,
+  } as const;
+
+  Object.entries(callLayoutValues).forEach(([property, value]) => {
+    document.documentElement.style.setProperty(property, `${value}px`);
+  });
 }
 
 const validScreens = new Set<Screen>([...screenOrder, "terms"]);
@@ -1118,7 +1164,7 @@ export default function App() {
   }
 
   return (
-    <div className="app-root">
+    <div className="app-root" data-screen={screen}>
       <div className="desktop-shell">
         <div className="phone-frame">
           <div key={screen} className={`screen-stage ${screenTransition}`}>
