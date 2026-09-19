@@ -6,6 +6,7 @@ import gentleBellRingtone from "../assets/audio/ringtone-gentle-bell.wav";
 import softPulseRingtone from "../assets/audio/ringtone-soft-pulse.wav";
 import soundModeFeedbackAudio from "../assets/audio/sound-mode-feedback.wav";
 import { Canvas } from "../components/Canvas";
+import { ErrorMessage } from "../components/ErrorMessage";
 import { Header } from "../components/Header";
 import { Icon } from "../components/Icon";
 import { RequirementErrorMessage } from "../components/RequirementErrorMessage";
@@ -72,6 +73,7 @@ export function SoundSetting({
     null,
   );
   const [isRingtoneDialogOpen, setIsRingtoneDialogOpen] = useState(false);
+  const [showRingtoneCopyright, setShowRingtoneCopyright] = useState(false);
   const [showVibrationError, setShowVibrationError] = useState(false);
   const [savingMode, setSavingMode] = useState(false);
   const feedbackTimeoutRef = useRef<number | null>(null);
@@ -198,7 +200,10 @@ export function SoundSetting({
   const handleRingtoneEntryClick = () => {
     if (RINGTONE_SELECTION_SCREEN_ENABLED) {
       setIsRingtoneDialogOpen(true);
+      return;
     }
+
+    setShowRingtoneCopyright(true);
   };
 
   return (
@@ -283,6 +288,15 @@ export function SoundSetting({
           <RequirementErrorMessage
             type="mobileOnlyVibration"
             onConfirm={() => setShowVibrationError(false)}
+          />
+        </div>
+      )}
+      {showRingtoneCopyright && (
+        <div className="modal-layer">
+          <ErrorMessage
+            title="벨소리 음원 출처"
+            description="Smartphone Mallets Musical 004는 ZapSplat에서 제공한 음원이며, Basic 라이선스의 출처 표기 조건에 따라 사용합니다."
+            onConfirm={() => setShowRingtoneCopyright(false)}
           />
         </div>
       )}

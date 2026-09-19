@@ -243,6 +243,52 @@
   height: 24px;
 }
 
+.alt-call-attribution {
+  position: absolute;
+  top: 52px;
+  left: 50%;
+  z-index: 6;
+  transform: translateX(-50%);
+  width: min(calc(100% - 96px), 270px);
+  min-height: 48px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  color: #fff;
+  background: rgba(22, 25, 35, 0.9);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
+  text-align: center;
+  animation: alt-call-attribution-enter 240ms ease both;
+}
+
+.alt-call-attribution b {
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 700;
+}
+
+.alt-call-attribution span {
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 9px;
+  line-height: 13px;
+}
+
+@keyframes alt-call-attribution-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
 @keyframes call-connection-status-pulse {
   0%,
   100% {
@@ -620,6 +666,7 @@
   .call-connected .alt-call-status,
   .call-connected .call-pad,
   .call-connected .call-bottom,
+  .alt-call-attribution,
   .call-ending .call-time,
   .call-ending h1,
   .call-ending > .call-profile-image,

@@ -299,7 +299,7 @@ export default function App() {
   const [counterpartCode, setCounterpartCode] =
     useState<CounterpartCode>("FATHER");
   const [soundMode, setSoundMode] = useState("소리");
-  const [ringtone, setRingtone] = useState("잔잔한 벨소리");
+  const [ringtone, setRingtone] = useState("Smartphone Mallets Musical 004");
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [initializing, setInitializing] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -714,9 +714,6 @@ export default function App() {
       if (timer !== null) window.clearTimeout(timer);
     };
   }, [deletion?.id, screen, showApiError]);
-
-  const next = () =>
-    go(screenOrder[(screenOrder.indexOf(screen) + 1) % screenOrder.length]);
 
   const handleVirtualLogin = async () => {
     if (!session?.csrfToken || busyAction) return;
@@ -1301,7 +1298,6 @@ export default function App() {
             )}
           </div>
           <BottomDrawer screen={screen} />
-          <button className="hidden-next" onClick={next} aria-label="다음 화면 테스트" />
           {apiError && (
             <div className="modal-layer">
               <ErrorMessage

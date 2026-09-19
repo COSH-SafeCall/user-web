@@ -32,6 +32,14 @@ const alternativeCallAudioByCounterpart: Record<CounterpartCode, string> = {
   FRIEND: friendAlternativeCallAudio,
 };
 
+const alternativeVoiceByCounterpart: Record<CounterpartCode, string> = {
+  FATHER: "중현",
+  MOTHER: "순이",
+  FRIEND: "재준",
+};
+
+const ATTRIBUTION_DISPLAY_MS = 5_000;
+
 function formatCallTime(elapsedSeconds: number) {
   const minutes = Math.floor(elapsedSeconds / 60)
     .toString()
@@ -62,8 +70,12 @@ export function Call({
   );
   const [isCallEnding, setIsCallEnding] = useState(false);
   const [showUnavailableError, setShowUnavailableError] = useState(false);
+  const [showAlternativeCopyright, setShowAlternativeCopyright] = useState(
+    startInAlternativeMode,
+  );
   const alternativeAudioRef = useRef<HTMLAudioElement | null>(null);
   const endCallTimeoutRef = useRef<number | null>(null);
+  const attributionTimeoutRef = useRef<number | null>(null);
   const counterpartProfile = counterpartProfiles[counterpartCode];
   const setAlternativeAudioElement = useCallback(
     (audio: HTMLAudioElement | null) => {
@@ -133,14 +145,36 @@ export function Call({
   useEffect(() => {
     const alternativeAudio = alternativeAudioRef.current;
 
+    if (startInAlternativeMode) {
+      attributionTimeoutRef.current = window.setTimeout(() => {
+        setShowAlternativeCopyright(false);
+        attributionTimeoutRef.current = null;
+      }, ATTRIBUTION_DISPLAY_MS);
+    }
+
     return () => {
       if (endCallTimeoutRef.current) {
         window.clearTimeout(endCallTimeoutRef.current);
       }
+      if (attributionTimeoutRef.current) {
+        window.clearTimeout(attributionTimeoutRef.current);
+      }
 
       alternativeAudio?.pause();
     };
-  }, []);
+  }, [startInAlternativeMode]);
+
+  const showAlternativeAttribution = () => {
+    if (attributionTimeoutRef.current) {
+      window.clearTimeout(attributionTimeoutRef.current);
+    }
+
+    setShowAlternativeCopyright(true);
+    attributionTimeoutRef.current = window.setTimeout(() => {
+      setShowAlternativeCopyright(false);
+      attributionTimeoutRef.current = null;
+    }, ATTRIBUTION_DISPLAY_MS);
+  };
 
   const handleAlternativeCallClick = async () => {
     if (isCallEnding) {
@@ -151,6 +185,7 @@ export function Call({
     const alternativeAudio = alternativeAudioRef.current;
 
     setIsAlternativeCallActive(true);
+    showAlternativeAttribution();
 
     if (!alternativeAudio) {
       return;
@@ -191,6 +226,15 @@ export function Call({
           aria-label="Gemini Live 연결 중"
         >
           <MdWifiOff aria-hidden="true" />
+        </div>
+      )}
+      {showAlternativeCopyright && (
+        <div className="alt-call-attribution" role="status">
+          <b>타입캐스트로 제작된 AI 음성입니다.</b>
+          <span>
+            출연진: {alternativeVoiceByCounterpart[counterpartCode]} ·
+            typecast.ai
+          </span>
         </div>
       )}
       <p className="call-time">{formatCallTime(elapsedSeconds)}</p>
