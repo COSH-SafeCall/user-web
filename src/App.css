@@ -145,6 +145,10 @@
     --mobile-screen-background: #6366f1;
   }
 
+  .app-root[data-screen="emergencyMessage"] {
+    --mobile-screen-background: #f7f7f8;
+  }
+
   .app-root[data-screen="complete"] {
     --mobile-screen-background: linear-gradient(
       180deg,

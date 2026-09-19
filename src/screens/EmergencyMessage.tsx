@@ -1,13 +1,19 @@
 import "./styles/EmergencyMessage.css";
 import { useEffect, useState } from "react";
-import { MdAdd, MdCheckCircle, MdLocationOn, MdSend } from "react-icons/md";
+import {
+  MdAdd,
+  MdArrowBack,
+  MdLocationOn,
+  MdMoreVert,
+  MdSend,
+  MdSms,
+} from "react-icons/md";
 import {
   getSafetyMessageComposer,
   MessageComposerError,
   type MessageComposerView,
 } from "../api/messageApi";
 import { Canvas } from "../components/Canvas";
-import { Header } from "../components/Header";
 import type { Go, Screen } from "../types";
 import { requestLocationPermission } from "../utils/browserPermissions";
 
@@ -257,7 +263,23 @@ export function EmergencyMessage({ go }: { go: Go }) {
 
   return (
     <Canvas className="emergency-message" layout="scroll">
-      <Header title="새 긴급 메시지" back={() => go("home")} />
+      <header className="message-app-header">
+        <button
+          type="button"
+          className="message-header-back"
+          onClick={() => go("home")}
+          aria-label="홈으로 돌아가기"
+        >
+          <MdArrowBack aria-hidden="true" />
+        </button>
+        <div className="message-app-title">
+          <h1>새 메시지</h1>
+          <span>SafeCall 데모</span>
+        </div>
+        <span className="message-header-more" aria-hidden="true">
+          <MdMoreVert />
+        </span>
+      </header>
 
       {loadState === "loading" && (
         <section className="message-load-state" aria-live="polite">
@@ -282,28 +304,41 @@ export function EmergencyMessage({ go }: { go: Go }) {
           <section className="message-recipients" aria-label="메시지 수신자">
             <span className="message-field-label">받는 사람</span>
             <div className="recipient-list">
-              {(composer.recipients ?? []).map((contact, index) => (
-                <span
-                  className="recipient-chip"
-                  key={contact.id ?? `${contact.name}-${index}`}
-                >
-                  {contact.name ?? `보호자 ${index + 1}`}
-                  <small>{contact.relationship ?? contact.phone}</small>
-                </span>
-              ))}
+              {(composer.recipients ?? []).map((contact, index) => {
+                const name = contact.name ?? `보호자 ${index + 1}`;
+
+                return (
+                  <span
+                    className="recipient-chip"
+                    key={contact.id ?? `${contact.name}-${index}`}
+                  >
+                    <span className="recipient-avatar" aria-hidden="true">
+                      {name.slice(0, 1)}
+                    </span>
+                    <span className="recipient-copy">
+                      <b>{name}</b>
+                      <small>{contact.phone ?? contact.relationship}</small>
+                    </span>
+                  </span>
+                );
+              })}
             </div>
           </section>
 
-          <section className="message-draft-preview">
-            <div className="message-demo-badge">API 작성 자료 · 실제 전송 안 됨</div>
-            <div className="message-preview-icon" aria-hidden="true">
-              <MdCheckCircle />
+          <section className="message-thread">
+            <div className="message-thread-intro">
+              <div className="message-thread-icon" aria-hidden="true">
+                <MdSms />
+              </div>
+              <h2>긴급 메시지가 준비되었습니다.</h2>
+              <p>
+                {composer.notice ??
+                  `${composer.identity?.name ?? "사용자"}님의 안심 메시지 작성 자료입니다.`}
+              </p>
+              <span className="message-demo-badge">
+                웹 데모 · 실제 전송 안 됨
+              </span>
             </div>
-            <h2>긴급 메시지가 자동으로 작성되었습니다.</h2>
-            <p>
-              {composer.notice ??
-                `${composer.identity?.name ?? "사용자"}님의 안심 메시지 작성 자료입니다.`}
-            </p>
             <div className="message-location-preview">
               <MdLocationOn aria-hidden="true" />
               <span>{getLocationStatusMessage(locationStatus)}</span>
@@ -311,19 +346,16 @@ export function EmergencyMessage({ go }: { go: Go }) {
           </section>
 
           <section className="message-composer" aria-label="긴급 메시지 작성 영역">
-            <button
-              type="button"
-              className="message-add-button"
-              aria-label="첨부 항목 추가"
-            >
+            <span className="message-add-icon" aria-hidden="true">
               <MdAdd aria-hidden="true" />
-            </button>
+            </span>
             <label className="message-input-wrap">
               <span className="sr-only">긴급 메시지 내용</span>
               <textarea
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
                 aria-label="긴급 메시지 내용"
+                placeholder="메시지 입력"
               />
             </label>
             <button
@@ -331,7 +363,7 @@ export function EmergencyMessage({ go }: { go: Go }) {
               className="message-send-button"
               onClick={() => setShowDemoNotice(true)}
               disabled={message.trim().length === 0}
-              aria-label="긴급 메시지 전송 체험"
+              aria-label="메시지 보내기"
             >
               <MdSend aria-hidden="true" />
             </button>
@@ -342,10 +374,10 @@ export function EmergencyMessage({ go }: { go: Go }) {
       {showDemoNotice && (
         <div className="message-demo-layer" role="dialog" aria-modal="true">
           <div className="message-demo-dialog">
-            <h2>데모 메시지입니다.</h2>
+            <h2>모바일 전용 기능입니다.</h2>
             <p>
-              실제 메시지 앱이나 전송 API를 호출하지 않았습니다. 작성 화면만
-              체험할 수 있습니다.
+              웹 데모에서는 실제 문자를 발송하지 않습니다. 모바일 앱에서 이용해
+              주세요.
             </p>
             <button type="button" onClick={() => setShowDemoNotice(false)}>
               확인
