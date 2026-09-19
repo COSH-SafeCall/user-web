@@ -34,14 +34,6 @@ export const permissionCopy = {
     "마이크 권한이 필요합니다.",
   ].join(" "),
   micWarning: "마이크 권한을 허용하지 않을 시 서비스 이용이 불가합니다.",
-  micFeatureBody: [
-    "가상 통화 중 내 음성이 입력될 수 있도록",
-    "브라우저 상단바에서 마이크 기능이 켜져 있는지 확인해주세요.",
-  ].join(" "),
-  micFeatureWarning: [
-    "상단바에서 마이크 기능이 꺼져 있으면",
-    "AI 안심 통화를 사용할 수 없습니다.",
-  ].join(" "),
   locationBody: [
     "긴급 문자에 사용자의 현재 위치 안내 링크를 함께",
     "제공하기 위해 위치 권한이 필요합니다.",
@@ -49,15 +41,6 @@ export const permissionCopy = {
   locationWarning: [
     "위치 권한을 허용하지 않을 시 긴급 문자에 위치 안내",
     "링크가 포함되지 않습니다.",
-  ].join(" "),
-  sosBody: [
-    "앱 사용중이나 AI 안심 통화 서비스를 이용 중에",
-    "긴급한 상황 발생 시 안드로이드 시스템에 등록된",
-    "긴급번호로 전화를 연결하는 데 필요한 기능입니다.",
-  ].join(" "),
-  sosWarning: [
-    "긴급 SOS 기능은 SafeCall에서 제공하는 기능이 아닌,",
-    "안드로이드 시스템 자체에서 제공하는 기능입니다.",
   ].join(" "),
 };
 
@@ -260,44 +243,81 @@ export function PermissionIntro({
     }
   };
 
+  if (sos) {
+    return (
+      <Canvas
+        className="permission permission-device-check"
+        layout="onboarding"
+      >
+        <div className="onboarding-scroll device-check-scroll">
+          <span className="device-check-step">
+            마지막 단계
+          </span>
+          <h1>휴대전화의 긴급 SOS를 확인해주세요.</h1>
+          <p className="device-check-lead">
+            새로운 권한을 요청하는 단계가 아닙니다.
+          </p>
+
+          <div className="device-check-visual" aria-hidden="true">
+            <Icon name="settings" size={36} />
+          </div>
+
+          <section className="device-check-card" aria-label="긴급 SOS 확인 방법">
+            <div className="device-check-card-heading">
+              <h2>긴급 SOS 확인 방법</h2>
+              <span>직접 확인</span>
+            </div>
+            <p className="device-check-path">
+              설정 &gt; 안전 및 긴급 &gt; 긴급 SOS
+            </p>
+            <ol>
+              <li>
+                <b>1</b>
+                <span>휴대전화의 설정 앱을 엽니다.</span>
+              </li>
+              <li>
+                <b>2</b>
+                <span>안전 및 긴급 메뉴를 선택합니다.</span>
+              </li>
+              <li>
+                <b>3</b>
+                <span>긴급 SOS가 켜져 있는지 확인합니다.</span>
+              </li>
+            </ol>
+          </section>
+
+          <p className="device-check-note">
+            SafeCall은 기기의 긴급 SOS 설정을 직접 확인하거나 변경할 수
+            없습니다. 실제 긴급 상황에서는 112 또는 119에 직접 연락해주세요.
+          </p>
+        </div>
+        <BottomButton
+          label="설정을 확인했어요"
+          onClick={() => go("complete")}
+          immediate
+        />
+      </Canvas>
+    );
+  }
+
   return (
     <Canvas className="permission" layout="onboarding">
       <div className="onboarding-scroll">
-        <h1>
-          {sos
-            ? "SafeCall 이용을 위해 아래의 기능이 켜져 있는지 확인해주세요."
-            : "SafeCall 이용을 위해 아래의 권한을 허용해주세요."}
-        </h1>
+        <h1>SafeCall 이용을 위해 아래의 권한을 허용해주세요.</h1>
         <section className="permission-list">
           <PermissionRow
             icon="mic"
             title="마이크"
-            body={sos ? permissionCopy.micFeatureBody : permissionCopy.micBody}
-            warning={
-              sos ? permissionCopy.micFeatureWarning : permissionCopy.micWarning
-            }
+            body={permissionCopy.micBody}
+            warning={permissionCopy.micWarning}
           />
-          {!sos && (
-            <PermissionRow
-              icon="location_on"
-              title="위치"
-              body={permissionCopy.locationBody}
-              warning={permissionCopy.locationWarning}
-            />
-          )}
-          {sos && (
-            <PermissionRow
-              icon="mic"
-              title="긴급 SOS"
-              body={permissionCopy.sosBody}
-              warning={permissionCopy.sosWarning}
-            />
-          )}
+          <PermissionRow
+            icon="location_on"
+            title="위치"
+            body={permissionCopy.locationBody}
+            warning={permissionCopy.locationWarning}
+          />
         </section>
-        <p className="sos-warning">
-          실제 119나 112에 신고가 갈 수 있으므로, SafeCall은 112 긴급 호출
-          기능을 제어할 수 없으므로 신중한 사용을 권장합니다.
-        </p>
         {permissionMessage && (
           <p className={`permission-message ${permissionMessage.type}`}>
             {permissionMessage.text}
@@ -312,7 +332,7 @@ export function PermissionIntro({
               ? "재요청"
             : canContinueWithoutLocation
               ? "위치 없이 다음"
-              : "다음"
+              : "권한 허용하기"
         }
         onClick={handleNext}
         disabled={requesting}
