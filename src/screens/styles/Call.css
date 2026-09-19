@@ -111,6 +111,19 @@
   display: grid;
   place-items: center;
   isolation: isolate;
+  touch-action: none;
+  user-select: none;
+  transition: transform 140ms ease-out, opacity 140ms ease-out;
+}
+
+.ring-actions button.dragging {
+  transition: none;
+}
+
+.ring-actions.answer-active .decline,
+.ring-actions.decline-active .answer {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .ring-actions button::before,

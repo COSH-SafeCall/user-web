@@ -4,7 +4,7 @@ import type { CSSProperties, ReactNode } from "react";
 type CanvasProps = {
   children: ReactNode;
   className?: string;
-  layout?: "fixed" | "scroll";
+  layout?: "fixed" | "scroll" | "onboarding";
   style?: CSSProperties;
   onClick?: () => void;
 };

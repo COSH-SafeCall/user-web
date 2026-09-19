@@ -303,9 +303,10 @@ export default function App() {
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [initializing, setInitializing] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
-  const [callRateLimitError, setCallRateLimitError] = useState<string | null>(
-    null,
-  );
+  const [callRateLimitError, setCallRateLimitError] = useState<{
+    title: string;
+    description: string;
+  } | null>(null);
   const [startInAlternativeMode, setStartInAlternativeMode] = useState(false);
   const [isDurationLimitNoticeOpen, setIsDurationLimitNoticeOpen] =
     useState(false);
@@ -877,9 +878,19 @@ export default function App() {
       if (
         error instanceof ApiError &&
         error.status === 429 &&
-        error.code === "RATE_LIMITED"
+        (error.code === "RATE_LIMITED" ||
+          error.code === "CALL_CAPACITY_REACHED")
       ) {
-        setCallRateLimitError(error.message);
+        setCallRateLimitError({
+          title:
+            error.code === "CALL_CAPACITY_REACHED"
+              ? "현재 체험 인원이 많습니다."
+              : "요청 한도를 초과했습니다.",
+          description:
+            error.code === "CALL_CAPACITY_REACHED"
+              ? error.message
+              : "잠시 후 다시 시도해주세요. 게스트는 하루 최대 2회, 로그인 사용자는 하루 최대 3회 통화할 수 있습니다.",
+        });
         return;
       }
       showApiError(error);
@@ -901,7 +912,7 @@ export default function App() {
     pendingCallRef.current = null;
     setCallRateLimitError(null);
     setActiveCall(null);
-    setCallConnectedAt(null);
+    setCallConnectedAt(Date.now());
     setStartInAlternativeMode(true);
     replaceScreen("call");
   };
@@ -1303,8 +1314,8 @@ export default function App() {
           {callRateLimitError && (
             <div className="modal-layer">
               <ErrorMessage
-                title="체험 통화 횟수를 모두 사용했습니다."
-                description={callRateLimitError}
+                title={callRateLimitError.title}
+                description={callRateLimitError.description}
                 confirmLabel="대체통화로 전환"
                 onConfirm={handleRateLimitFallback}
                 secondaryLabel="홈으로"

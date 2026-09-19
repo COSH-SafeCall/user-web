@@ -1,5 +1,6 @@
 ﻿.profile {
   background: #000;
+  overflow: clip;
 }
 
 .profile-form {

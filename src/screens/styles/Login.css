@@ -1,6 +1,10 @@
 ﻿.login {
   background: #6366f1;
   position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: auto;
+  -webkit-overflow-scrolling: touch;
   --login-brand-top: clamp(250px, 33.18%, 304px);
   --login-actions-top: clamp(589px, 78.15%, 716px);
 }

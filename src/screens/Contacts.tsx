@@ -40,8 +40,17 @@ export function Contacts({
   edit,
 }: ContactsProps) {
   const canAddContact = contacts.length < 2;
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [pendingDeleteContact, setPendingDeleteContact] =
     useState<EmergencyContact | null>(null);
+  const showAddModal = modal || (edit && isAddModalOpen);
+  const closeAddModal = () => {
+    if (edit) {
+      setIsAddModalOpen(false);
+    } else {
+      go("contacts");
+    }
+  };
 
   return (
     <Canvas className="contacts" layout="scroll" style={useScale()}>
@@ -62,7 +71,7 @@ export function Contacts({
       )}
       <section
         className={`contact-area ${contacts.length === 0 ? "empty" : ""} ${
-          modal ? "under-modal" : ""
+          showAddModal ? "under-modal" : ""
         } ${edit ? "edit" : ""}`}
       >
         {contacts.map((contact) => (
@@ -77,7 +86,13 @@ export function Contacts({
           <FeedbackButton
             className="plus"
             ariaLabel="비상 연락처 추가"
-            onClick={() => go("contactModal")}
+            onClick={() => {
+              if (edit) {
+                setIsAddModalOpen(true);
+              } else {
+                go("contactModal");
+              }
+            }}
           >
             <Icon name="add" size={40} />
           </FeedbackButton>
@@ -86,10 +101,10 @@ export function Contacts({
       {!edit && (
         <BottomButton label="다음" onClick={() => go("permissionBasic")} />
       )}
-      {modal && canAddContact && (
+      {showAddModal && canAddContact && (
         <div className="modal-layer">
           <ContactModal
-            go={go}
+            onClose={closeAddModal}
             contact={fixedEmergencyContacts[contacts.length]}
             onAddContact={onAddContact}
           />
@@ -168,11 +183,11 @@ function ContactCard({
 }
 
 function ContactModal({
-  go,
+  onClose,
   contact,
   onAddContact,
 }: {
-  go: Go;
+  onClose: () => void;
   contact: FixedEmergencyContact;
   onAddContact: (contact: FixedEmergencyContact) => Promise<void>;
 }) {
@@ -186,7 +201,7 @@ function ContactModal({
     setAdding(true);
     try {
       await onAddContact(contact);
-      go("contacts");
+      onClose();
     } catch {
       // 상위 공통 오류 모달을 유지하고 현재 추가 모달에 머뭅니다.
     } finally {
@@ -211,7 +226,7 @@ function ContactModal({
       <div className="contact-modal-actions">
         <FeedbackButton
           className="contact-action-button"
-          onClick={() => go("contacts")}
+          onClick={onClose}
         >
           취소
         </FeedbackButton>

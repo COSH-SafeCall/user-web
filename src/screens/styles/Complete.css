@@ -1,5 +1,6 @@
 ﻿.complete {
   background: linear-gradient(180deg, #a8a8cd 0%, #6366f1 48%, #34327f 100%);
+  overflow: clip;
 }
 
 .complete section {
@@ -17,7 +18,7 @@
   line-height: 36px;
   font-weight: 400;
   letter-spacing: -0.3px;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .complete p {

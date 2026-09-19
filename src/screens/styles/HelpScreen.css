@@ -3,6 +3,15 @@
 }
 
 .help-list {
-  width: 344px;
+  width: min(calc(100% - 48px), 344px);
   margin: 34px auto 0;
+  flex: 0 0 auto;
+}
+
+.help-screen > .header {
+  flex: 0 0 auto;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #000;
 }

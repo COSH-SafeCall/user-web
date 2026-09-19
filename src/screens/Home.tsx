@@ -314,6 +314,7 @@ export function Home({
           ),
         )}
       </div>
+      <span className="call-main-glow" aria-hidden="true" />
       <button
         type="button"
         className={`call-main ${quickStartOpen ? "marking" : ""}`}

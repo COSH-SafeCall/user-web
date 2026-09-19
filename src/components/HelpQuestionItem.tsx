@@ -3,9 +3,9 @@ import { Icon } from "./Icon";
 
 type HelpQuestionItemProps = {
   question: string;
-  answer?: string;
+  answer: string;
   open?: boolean;
-  onClick?: () => void;
+  onClick: () => void;
 };
 
 export function HelpQuestionItem({
@@ -16,15 +16,16 @@ export function HelpQuestionItem({
 }: HelpQuestionItemProps) {
   return (
     <button
+      type="button"
       className={`help-question-item${open ? " open" : ""}`}
       onClick={onClick}
-      aria-expanded={answer ? open : undefined}
+      aria-expanded={open}
     >
       <span>
         <b>Q.</b> {question}
       </span>
       <Icon name="chevron_right" />
-      {open && answer && <p>{answer}</p>}
+      {open && <span className="help-answer">{answer}</span>}
     </button>
   );
 }

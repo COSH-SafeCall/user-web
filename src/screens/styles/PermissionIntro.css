@@ -1,6 +1,11 @@
 ﻿.permission {
-  padding-top: 60px;
+  padding-top: 0;
   background: #000;
+  overflow: clip;
+}
+
+.permission .onboarding-scroll {
+  padding-top: 60px;
 }
 
 .permission h1 {
@@ -63,7 +68,7 @@
 }
 
 .sos-warning {
-  width: 316px;
+  width: min(calc(100% - 80px), 316px);
   margin: 26px auto 0;
   color: #ffe100;
   font-size: 13px;
