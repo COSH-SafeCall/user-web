@@ -9,9 +9,3 @@
   flex-direction: column;
   gap: 36px;
 }
-
-.permission-setting-help {
-  color: #aeb5c9;
-  font-size: 13px;
-  line-height: 1.5;
-}
