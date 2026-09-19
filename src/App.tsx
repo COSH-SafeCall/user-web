@@ -94,7 +94,7 @@ type SafeCallHistoryState = {
 
 const DEMO_CLOSING_LEAD_MS = 15_000;
 const REFERENCE_VIEWPORT_WIDTH = 402;
-const REFERENCE_VIEWPORT_HEIGHT = 874;
+const FIXED_LAYOUT_CONTENT_HEIGHT = 810;
 
 function applyViewportLayoutVariables() {
   const viewport = window.visualViewport;
@@ -113,7 +113,7 @@ function applyViewportLayoutVariables() {
   const fixedLayoutScale = Math.min(
     1,
     mobileFrameWidth / REFERENCE_VIEWPORT_WIDTH,
-    viewportHeight / REFERENCE_VIEWPORT_HEIGHT,
+    viewportHeight / FIXED_LAYOUT_CONTENT_HEIGHT,
   );
 
   document.documentElement.style.setProperty(

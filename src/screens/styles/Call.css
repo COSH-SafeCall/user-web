@@ -488,7 +488,7 @@
   left: 50%;
   transform: translateX(-50%);
   width: min(calc(100% - 84px), 318px);
-  height: 324px;
+  height: min(324px, calc(100% - 500px));
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.34);
   padding: 56px 34px 0;
@@ -578,7 +578,7 @@
 
 .call-bottom {
   position: absolute;
-  top: 814px;
+  top: min(814px, calc(100% - 18px));
   left: 50%;
   transform: translateX(-50%);
   width: min(calc(100% - 60px), 360px);
