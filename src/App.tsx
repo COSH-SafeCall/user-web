@@ -180,12 +180,25 @@ function applyViewportLayoutVariables() {
 }
 
 const validScreens = new Set<Screen>([...screenOrder, "terms"]);
+const resumableOnboardingScreens = new Set<Screen>([
+  "profile",
+  "contacts",
+  "contactModal",
+  "permissionBasic",
+  "permissionSos",
+  "complete",
+]);
 
 function getSafeCallHistoryState(state: unknown) {
   if (!state || typeof state !== "object") return null;
   const safeCall = (state as SafeCallHistoryState).safeCall;
   if (!safeCall || !validScreens.has(safeCall.screen)) return null;
   return safeCall;
+}
+
+function getResumableOnboardingScreen(state: unknown): Screen | null {
+  const screen = getSafeCallHistoryState(state)?.screen;
+  return screen && resumableOnboardingScreens.has(screen) ? screen : null;
 }
 
 function createAbortError() {
@@ -318,6 +331,9 @@ export default function App() {
   const callConnectionAbortRef = useRef<AbortController | null>(null);
   const terminatingCallRef = useRef(false);
   const screenRef = useRef<Screen>("login");
+  const initialOnboardingScreenRef = useRef(
+    getResumableOnboardingScreen(window.history.state),
+  );
   const isDeletionProcessing =
     deletion?.scope === "ACCOUNT" &&
     (deletion.status === "PENDING" || deletion.status === "PROCESSING");
@@ -429,6 +445,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (getSafeCallHistoryState(window.history.state)) return;
     window.history.replaceState(
       mergeHistoryState({ screen: screenRef.current, previousScreen: null }),
       "",
@@ -491,7 +508,11 @@ export default function App() {
       .then((result) => {
         if (ignore) return;
         setSession(result);
-        if (result.kind === "MEMBER") replaceScreen("home", true);
+        if (result.kind === "MEMBER" && initialOnboardingScreenRef.current) {
+          replaceScreen(initialOnboardingScreenRef.current);
+        } else {
+          replaceScreen(result.kind === "ANONYMOUS" ? "login" : "home", true);
+        }
       })
       .catch((error: unknown) => {
         if (!ignore && !(error instanceof DOMException && error.name === "AbortError")) {
