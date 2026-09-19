@@ -1,5 +1,11 @@
 import "./App.css";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { BottomDrawer } from "./components/BottomDrawer";
 import { ErrorMessage } from "./components/ErrorMessage";
 import { screenOrder } from "./screenOrder";
@@ -87,6 +93,46 @@ type SafeCallHistoryState = {
 };
 
 const DEMO_CLOSING_LEAD_MS = 15_000;
+const REFERENCE_VIEWPORT_WIDTH = 402;
+const REFERENCE_VIEWPORT_HEIGHT = 874;
+
+function applyViewportLayoutVariables() {
+  const viewport = window.visualViewport;
+  const viewportWidth = Math.max(
+    viewport?.width ?? window.innerWidth,
+    1,
+  );
+  const viewportHeight = Math.max(
+    viewport?.height ?? window.innerHeight,
+    1,
+  );
+  const mobileFrameWidth = Math.min(
+    viewportWidth,
+    REFERENCE_VIEWPORT_WIDTH,
+  );
+  const fixedLayoutScale = Math.min(
+    1,
+    mobileFrameWidth / REFERENCE_VIEWPORT_WIDTH,
+    viewportHeight / REFERENCE_VIEWPORT_HEIGHT,
+  );
+
+  document.documentElement.style.setProperty(
+    "--app-height",
+    `${viewportHeight}px`,
+  );
+  document.documentElement.style.setProperty(
+    "--fixed-layout-scale",
+    String(fixedLayoutScale),
+  );
+  document.documentElement.style.setProperty(
+    "--fixed-layout-width",
+    `${mobileFrameWidth / fixedLayoutScale}px`,
+  );
+  document.documentElement.style.setProperty(
+    "--fixed-layout-height",
+    `${viewportHeight / fixedLayoutScale}px`,
+  );
+}
 
 const validScreens = new Set<Screen>([...screenOrder, "terms"]);
 
@@ -230,6 +276,31 @@ export default function App() {
   const isDeletionProcessing =
     deletion?.scope === "ACCOUNT" &&
     (deletion.status === "PENDING" || deletion.status === "PROCESSING");
+
+  useLayoutEffect(() => {
+    let animationFrameId = 0;
+    const viewport = window.visualViewport;
+    const scheduleViewportUpdate = () => {
+      window.cancelAnimationFrame(animationFrameId);
+      animationFrameId = window.requestAnimationFrame(
+        applyViewportLayoutVariables,
+      );
+    };
+
+    applyViewportLayoutVariables();
+    window.addEventListener("resize", scheduleViewportUpdate);
+    window.addEventListener("orientationchange", scheduleViewportUpdate);
+    viewport?.addEventListener("resize", scheduleViewportUpdate);
+    viewport?.addEventListener("scroll", scheduleViewportUpdate);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", scheduleViewportUpdate);
+      window.removeEventListener("orientationchange", scheduleViewportUpdate);
+      viewport?.removeEventListener("resize", scheduleViewportUpdate);
+      viewport?.removeEventListener("scroll", scheduleViewportUpdate);
+    };
+  }, []);
 
   const applyScreen = useCallback((nextScreen: Screen) => {
     const currentScreen = screenRef.current;

@@ -24,7 +24,7 @@ export function HelpScreen({ go }: { go: Go }) {
   };
 
   return (
-    <Canvas className="help-screen">
+    <Canvas className="help-screen" layout="scroll">
       <Header title="도움말" back={() => go("setting")} />
       <section className="help-list">
         {helpRows.map((row, index) => (

@@ -119,7 +119,7 @@ export function PermissionSetting({
     return "확인 필요";
   };
   return (
-    <Canvas className="permission-setting">
+    <Canvas className="permission-setting" layout="scroll">
       <Header title="위치 권한 허용 여부 변경" back={() => go("setting")} />
       <section>
         <PermissionRow

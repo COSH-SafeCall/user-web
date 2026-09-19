@@ -44,7 +44,7 @@ export function Contacts({
     useState<EmergencyContact | null>(null);
 
   return (
-    <Canvas className="contacts" style={useScale()}>
+    <Canvas className="contacts" layout="scroll" style={useScale()}>
       {edit && <Header title="비상 연락처 수정" back={() => go("setting")} />}
       {!edit && (
         <div className="contact-copy">

@@ -202,7 +202,7 @@ export function SoundSetting({
   };
 
   return (
-    <Canvas className="sound-setting">
+    <Canvas className="sound-setting" layout="scroll">
       <Header title="가상 통화 수신 벨소리 설정" back={() => go("setting")} />
       <section className="sound-card">
         <p>수신 방식</p>

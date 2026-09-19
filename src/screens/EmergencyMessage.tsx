@@ -256,7 +256,7 @@ export function EmergencyMessage({ go }: { go: Go }) {
   };
 
   return (
-    <Canvas className="emergency-message">
+    <Canvas className="emergency-message" layout="scroll">
       <Header title="새 긴급 메시지" back={() => go("home")} />
 
       {loadState === "loading" && (

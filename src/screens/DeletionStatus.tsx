@@ -41,7 +41,7 @@ export function DeletionStatus({
     },
   ] as const;
   return (
-    <Canvas className="deletion-status">
+    <Canvas className="deletion-status" layout="scroll">
       <Header
         title="탈퇴 처리 상태"
         back={status === "FAILED" ? () => go("setting") : undefined}

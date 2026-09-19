@@ -222,7 +222,7 @@ export function PermissionIntro({
   };
 
   return (
-    <Canvas className="permission" style={useScale()}>
+    <Canvas className="permission" layout="scroll" style={useScale()}>
       <h1>
         {sos
           ? "SafeCall 이용을 위해 아래의 기능이 켜져 있는지 확인해주세요."

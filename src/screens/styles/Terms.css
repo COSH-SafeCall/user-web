@@ -80,3 +80,20 @@
 .agree input:checked + span svg {
   opacity: 1;
 }
+
+.canvas-layout-scroll.terms .terms-body {
+  margin-bottom: 32px;
+}
+
+.canvas-layout-scroll.terms .agree {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  width: min(calc(100% - 60px), 342px);
+  flex: 0 0 auto;
+  margin: auto auto 24px;
+}
+
+.canvas-layout-scroll.terms > .bottom-button {
+  margin-top: 0;
+}

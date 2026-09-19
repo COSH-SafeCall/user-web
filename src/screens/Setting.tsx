@@ -54,7 +54,7 @@ export function Setting({
   };
 
   return (
-    <Canvas className="setting">
+    <Canvas className="setting" layout="scroll">
       <div className={dialog ? "dimmed" : ""}>
         <Header title="설정" back={() => go("home")} />
         <section className="setting-profile">

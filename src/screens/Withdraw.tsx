@@ -14,7 +14,7 @@ export function Withdraw({
   busy?: boolean;
 }) {
   return (
-    <Canvas className="withdraw">
+    <Canvas className="withdraw" layout="scroll">
       <Header title="탈퇴하기" back={() => go("setting")} />
       <p>
         탈퇴하는 즉시 서버에 저장된 개인정보가 삭제됩니다. 추후 로그인

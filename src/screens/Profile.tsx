@@ -45,7 +45,7 @@ export function Profile({
   };
 
   return (
-    <Canvas className="profile" style={useScale()}>
+    <Canvas className="profile" layout="scroll" style={useScale()}>
       {edit && <Header title="사용자 정보" back={() => go("setting")} />}
       <div className={`profile-form ${edit ? "edit" : ""}`}>
         <SignupFormField

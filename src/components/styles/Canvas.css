@@ -1,4 +1,4 @@
-﻿.canvas {
+.canvas {
   width: 100%;
   min-height: inherit;
   height: 100%;
@@ -6,6 +6,44 @@
   overflow: hidden;
   background: #000;
   margin: 0 auto;
+}
+
+.canvas-layout-scroll {
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+}
+
+.canvas-layout-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.canvas-layout-scroll > .bottom-button {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  flex: 0 0 auto;
+  transform: none;
+  margin: auto auto 0;
+}
+
+.canvas-layout-scroll > .bottom-button.pressed,
+.canvas-layout-scroll > .bottom-button:active {
+  transform: scale(0.97);
+}
+
+.canvas-layout-scroll > .two-buttons {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  flex: 0 0 auto;
+  transform: none;
+  margin: auto auto 0;
 }
 
 .image-screen {
@@ -23,15 +61,29 @@
   object-fit: cover;
 }
 
-@media (max-width: 401px) {
+@media (max-width: 600px) {
   .canvas {
     width: 100%;
+    height: 100vh;
+    height: var(--app-height, 100dvh);
     min-height: 100vh;
+    min-height: var(--app-height, 100dvh);
     transform: none;
+  }
+
+  .canvas-layout-fixed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--fixed-layout-width, 100%);
+    height: var(--fixed-layout-height, 100%);
+    min-height: 0;
+    transform: scale(var(--fixed-layout-scale, 1));
+    transform-origin: top left;
   }
 }
 
-@media (min-width: 403px) {
+@media (min-width: 601px) {
   .canvas {
     width: 402px;
     min-width: 402px;

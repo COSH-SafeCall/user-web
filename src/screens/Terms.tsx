@@ -21,7 +21,7 @@ export function Terms({ go }: { go: Go }) {
   };
 
   return (
-    <Canvas className="terms" style={useScale()}>
+    <Canvas className="terms" layout="scroll" style={useScale()}>
       <h1>개인정보 처리 및 AI 통화 동의</h1>
       <div className="terms-body">
         <p>

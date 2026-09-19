@@ -1,5 +1,6 @@
 ﻿.app-root {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -10,6 +11,7 @@
 .desktop-shell {
   width: min(100vw, 402px);
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -20,6 +22,7 @@
   position: relative;
   width: min(100vw, 402px);
   min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
   background: #000;
 }
@@ -118,27 +121,39 @@
   z-index: 50;
 }
 
-@media (max-width: 401px) {
+@media (max-width: 600px) {
   html,
   body,
   #root {
+    height: var(--app-height, 100dvh);
+    min-height: var(--app-height, 100dvh);
+    overflow: hidden;
     background: #000;
   }
 
   .app-root {
+    height: var(--app-height, 100dvh);
+    min-height: var(--app-height, 100dvh);
     align-items: stretch;
+    overflow: hidden;
     background: #000;
   }
 
   .desktop-shell {
-    width: 100vw;
+    width: min(100vw, 402px);
+    height: 100vh;
+    height: var(--app-height, 100dvh);
     min-height: 100vh;
+    min-height: var(--app-height, 100dvh);
     background: transparent;
   }
 
   .phone-frame {
-    width: 100vw;
+    width: min(100vw, 402px);
+    height: 100vh;
+    height: var(--app-height, 100dvh);
     min-height: 100vh;
+    min-height: var(--app-height, 100dvh);
   }
 }
 
@@ -154,7 +169,7 @@
   }
 }
 
-@media (min-width: 403px) {
+@media (min-width: 601px) {
   html,
   body,
   #root {
