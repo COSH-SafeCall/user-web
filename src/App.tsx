@@ -101,6 +101,14 @@ function createAbortError() {
   return new DOMException("통화 연결이 취소되었습니다.", "AbortError");
 }
 
+function isDeletionPendingError(error: unknown) {
+  return (
+    error instanceof ApiError &&
+    (error.code === "ACCOUNT_DELETION_PENDING" ||
+      error.code === "DATA_CLEANUP_PENDING")
+  );
+}
+
 function waitForRetry(delayMs: number, signal: AbortSignal) {
   return new Promise<void>((resolve, reject) => {
     if (signal.aborted) {
@@ -219,6 +227,9 @@ export default function App() {
   const callConnectionAbortRef = useRef<AbortController | null>(null);
   const terminatingCallRef = useRef(false);
   const screenRef = useRef<Screen>("login");
+  const isDeletionProcessing =
+    deletion?.scope === "ACCOUNT" &&
+    (deletion.status === "PENDING" || deletion.status === "PROCESSING");
 
   const applyScreen = useCallback((nextScreen: Screen) => {
     const currentScreen = screenRef.current;
@@ -233,6 +244,18 @@ export default function App() {
 
   const go: Go = useCallback(
     (nextScreen) => {
+      if (isDeletionProcessing && nextScreen !== "deletionStatus") {
+        window.history.replaceState(
+          mergeHistoryState({
+            screen: "deletionStatus",
+            previousScreen: null,
+          }),
+          "",
+        );
+        applyScreen("deletionStatus");
+        return;
+      }
+
       if (nextScreen === screenRef.current) return;
 
       const currentHistory = getSafeCallHistoryState(window.history.state);
@@ -250,11 +273,23 @@ export default function App() {
       );
       applyScreen(nextScreen);
     },
-    [applyScreen],
+    [applyScreen, isDeletionProcessing],
   );
 
   const replaceScreen = useCallback(
     (nextScreen: Screen, resetPrevious = false) => {
+      if (isDeletionProcessing && nextScreen !== "deletionStatus") {
+        window.history.replaceState(
+          mergeHistoryState({
+            screen: "deletionStatus",
+            previousScreen: null,
+          }),
+          "",
+        );
+        applyScreen("deletionStatus");
+        return;
+      }
+
       const currentHistory = getSafeCallHistoryState(window.history.state);
       window.history.replaceState(
         mergeHistoryState({
@@ -267,7 +302,7 @@ export default function App() {
       );
       applyScreen(nextScreen);
     },
-    [applyScreen],
+    [applyScreen, isDeletionProcessing],
   );
 
   const showApiError = useCallback((error: unknown) => {
@@ -285,6 +320,18 @@ export default function App() {
     const handlePopState = (event: PopStateEvent) => {
       const historyScreen = getSafeCallHistoryState(event.state)?.screen;
       if (!historyScreen) return;
+
+      if (isDeletionProcessing && historyScreen !== "deletionStatus") {
+        window.history.replaceState(
+          mergeHistoryState({
+            screen: "deletionStatus",
+            previousScreen: null,
+          }),
+          "",
+        );
+        applyScreen("deletionStatus");
+        return;
+      }
 
       if (activeCall?.id && session?.csrfToken) {
         const callId = activeCall.id;
@@ -309,7 +356,13 @@ export default function App() {
 
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, [activeCall?.id, applyScreen, session?.csrfToken, showApiError]);
+  }, [
+    activeCall?.id,
+    applyScreen,
+    isDeletionProcessing,
+    session?.csrfToken,
+    showApiError,
+  ]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -555,7 +608,11 @@ export default function App() {
       setSession(await getSession());
       replaceScreen("profile", true);
     } catch (error) {
-      showApiError(error);
+      if (isDeletionPendingError(error) && deletion?.id) {
+        replaceScreen("deletionStatus", true);
+      } else {
+        showApiError(error);
+      }
     } finally {
       setBusyAction(null);
     }
@@ -569,7 +626,11 @@ export default function App() {
       setSession(await getSession());
       replaceScreen("home", true);
     } catch (error) {
-      showApiError(error);
+      if (isDeletionPendingError(error) && deletion?.id) {
+        replaceScreen("deletionStatus", true);
+      } else {
+        showApiError(error);
+      }
     } finally {
       setBusyAction(null);
     }
@@ -933,6 +994,28 @@ export default function App() {
     }
   };
 
+  const handleDeletionCompleted = async () => {
+    if (deletion?.status !== "COMPLETED" || busyAction) return;
+    setBusyAction("deletion-session");
+
+    try {
+      const nextSession = await getSession();
+      setSession(nextSession);
+      setProfile(null);
+      setContacts([]);
+      setPermissions([]);
+      setHomeData(null);
+      setActiveCall(null);
+      setCallConnectedAt(null);
+      setDeletion(null);
+      replaceScreen("login", true);
+    } catch (error) {
+      showApiError(error);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
   const openEmergencyMessage = () => {
     if (!homeData) {
       setApiError("홈 정보를 불러온 뒤 다시 시도해주세요.");
@@ -1060,12 +1143,10 @@ export default function App() {
             )}
             {screen === "deletionStatus" && (
               <DeletionStatus
-                go={(nextScreen) =>
-                  nextScreen === "login"
-                    ? replaceScreen(nextScreen, true)
-                    : go(nextScreen)
-                }
+                go={go}
                 deletion={deletion}
+                onCompleted={handleDeletionCompleted}
+                busy={busyAction === "deletion-session"}
               />
             )}
             {screen === "editProfile" && <Profile go={go} edit />}
