@@ -11,6 +11,7 @@
 .permission h1 {
   width: min(calc(100% - 104px), 298px);
   margin: 0 auto;
+  color: #fff;
   text-align: center;
   font-size: 23px;
   line-height: 29px;
@@ -88,81 +89,40 @@
   padding: 60px 28px calc(112px + env(safe-area-inset-bottom));
 }
 
-.permission-device-check .device-check-step {
-  color: #898bdf;
-  font-size: 11px;
-  line-height: 16px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
 .permission-device-check h1 {
   width: min(100%, 330px);
-  margin-top: 14px;
+  margin-top: 0;
   font-size: 23px;
   line-height: 31px;
   font-weight: 600;
   word-break: keep-all;
 }
 
-.device-check-lead {
-  margin: 8px 0 0;
-  color: #858891;
-  font-size: 12px;
-  line-height: 19px;
-  text-align: center;
-}
-
 .device-check-visual {
   width: 68px;
   height: 68px;
-  margin-top: 38px;
+  margin: 0 auto 24px;
   border-radius: 22px;
   display: grid;
   place-items: center;
   color: #b2b4ef;
-  background: #20212b;
+  background: #17181d;
 }
 
 .device-check-card {
   width: min(100%, 354px);
-  margin-top: 30px;
+  margin-top: 34px;
   border-radius: 20px;
   padding: 20px;
   background: #17181d;
 }
 
-.device-check-card-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-
-.device-check-card-heading h2 {
+.device-check-card h2 {
   margin: 0;
   color: #f1f1f3;
   font-size: 14px;
   line-height: 21px;
   font-weight: 700;
-}
-
-.device-check-card-heading > span {
-  flex: 0 0 auto;
-  color: #9295a0;
-  font-size: 10px;
-  line-height: 14px;
-}
-
-.device-check-card-heading > span::before {
-  content: "";
-  width: 5px;
-  height: 5px;
-  margin-right: 6px;
-  border-radius: 50%;
-  display: inline-block;
-  vertical-align: 1px;
-  background: #898bdf;
 }
 
 .device-check-path {
@@ -228,7 +188,7 @@
   .device-check-visual {
     width: 58px;
     height: 58px;
-    margin-top: 20px;
+    margin-bottom: 18px;
     border-radius: 19px;
   }
 

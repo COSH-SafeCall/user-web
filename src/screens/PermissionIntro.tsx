@@ -250,23 +250,12 @@ export function PermissionIntro({
         layout="onboarding"
       >
         <div className="onboarding-scroll device-check-scroll">
-          <span className="device-check-step">
-            마지막 단계
-          </span>
           <h1>휴대전화의 긴급 SOS를 확인해주세요.</h1>
-          <p className="device-check-lead">
-            새로운 권한을 요청하는 단계가 아닙니다.
-          </p>
-
-          <div className="device-check-visual" aria-hidden="true">
-            <Icon name="settings" size={36} />
-          </div>
-
           <section className="device-check-card" aria-label="긴급 SOS 확인 방법">
-            <div className="device-check-card-heading">
-              <h2>긴급 SOS 확인 방법</h2>
-              <span>직접 확인</span>
+            <div className="device-check-visual" aria-hidden="true">
+              <Icon name="settings" size={36} />
             </div>
+            <h2>긴급 SOS 확인 방법</h2>
             <p className="device-check-path">
               설정 &gt; 안전 및 긴급 &gt; 긴급 SOS
             </p>

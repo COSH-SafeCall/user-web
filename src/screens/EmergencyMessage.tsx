@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import {
   MdAdd,
   MdArrowBack,
-  MdLocationOn,
   MdMoreVert,
   MdSend,
   MdSms,
@@ -332,16 +331,13 @@ export function EmergencyMessage({ go }: { go: Go }) {
               </div>
               <h2>긴급 메시지가 준비되었습니다.</h2>
               <p>
-                {composer.notice ??
-                  `${composer.identity?.name ?? "사용자"}님의 안심 메시지 작성 자료입니다.`}
+                이 화면은 가상 문자 화면입니다.
+                <br />
+                실제 문자가 발송되지 않습니다.
               </p>
               <span className="message-demo-badge">
-                웹 데모 · 실제 전송 안 됨
+                {getLocationStatusMessage(locationStatus)}
               </span>
-            </div>
-            <div className="message-location-preview">
-              <MdLocationOn aria-hidden="true" />
-              <span>{getLocationStatusMessage(locationStatus)}</span>
             </div>
           </section>
 

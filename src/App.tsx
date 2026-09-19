@@ -40,7 +40,7 @@ import {
   deleteContact as deleteContactApi,
   getContacts,
 } from "./api/contactApi";
-import { getPermissions, savePermissions } from "./api/permissionApi";
+import { savePermissions } from "./api/permissionApi";
 import { getCallOptions, getHome } from "./api/homeApi";
 import { getSettings, saveSettings } from "./api/settingsApi";
 import {
@@ -68,7 +68,6 @@ import type {
   IncomingAlertMode,
   PermissionCode,
   PermissionStatus,
-  PermissionView,
   ProfileView,
   ScenarioCode,
   SessionView,
@@ -77,7 +76,7 @@ import type {
 import type { Go, Screen } from "./types";
 
 type ScreenFlow = "onboarding" | "home" | "setting" | "help";
-type ScreenTransition = "same-flow" | "flow-change";
+type ScreenTransition = "same-flow" | "flow-change" | "none";
 type PendingCall = {
   clientCallId: string;
   callPageKey: string;
@@ -287,7 +286,6 @@ export default function App() {
   const [session, setSession] = useState<SessionView | null>(null);
   const [profile, setProfile] = useState<ProfileView | null>(null);
   const [contacts, setContacts] = useState<EmergencyContact[]>([]);
-  const [permissions, setPermissions] = useState<PermissionView[]>([]);
   const [homeData, setHomeData] = useState<HomeView | null>(null);
   const [callOptions, setCallOptions] = useState<CallOptionsView | null>(null);
   const [setting, setSetting] = useState<SettingView | null>(null);
@@ -353,9 +351,12 @@ export default function App() {
     const currentScreen = screenRef.current;
     screenRef.current = nextScreen;
     setScreenTransition(
-      getScreenFlow(currentScreen) === getScreenFlow(nextScreen)
-        ? "same-flow"
-        : "flow-change",
+      (currentScreen === "contacts" && nextScreen === "contactModal") ||
+        (currentScreen === "contactModal" && nextScreen === "contacts")
+        ? "none"
+        : getScreenFlow(currentScreen) === getScreenFlow(nextScreen)
+          ? "same-flow"
+          : "flow-change",
     );
     setScreen(nextScreen);
   }, []);
@@ -514,19 +515,6 @@ export default function App() {
     const controller = new AbortController();
     getContacts(controller.signal)
       .then((items) => setContacts(items.map(toEmergencyContact)))
-      .catch((error: unknown) => {
-        if (!(error instanceof DOMException && error.name === "AbortError")) showApiError(error);
-      });
-    return () => controller.abort();
-  }, [screen, session, showApiError]);
-
-  useEffect(() => {
-    if (!session || !["permissionBasic", "permissionSetting"].includes(screen)) {
-      return;
-    }
-    const controller = new AbortController();
-    getPermissions(controller.signal)
-      .then(setPermissions)
       .catch((error: unknown) => {
         if (!(error instanceof DOMException && error.name === "AbortError")) showApiError(error);
       });
@@ -809,7 +797,7 @@ export default function App() {
   ) => {
     if (!session?.csrfToken) throw new Error("세션이 필요합니다.");
     try {
-      setPermissions(await savePermissions(session.csrfToken, values));
+      await savePermissions(session.csrfToken, values);
     } catch (error) {
       showApiError(error);
       throw error;
@@ -1090,7 +1078,6 @@ export default function App() {
       setSession(await getSession());
       setProfile(null);
       setContacts([]);
-      setPermissions([]);
       setHomeData(null);
       setActiveCall(null);
       setCallConnectedAt(null);
@@ -1128,7 +1115,6 @@ export default function App() {
       setSession(nextSession);
       setProfile(null);
       setContacts([]);
-      setPermissions([]);
       setHomeData(null);
       setActiveCall(null);
       setCallConnectedAt(null);
@@ -1292,7 +1278,6 @@ export default function App() {
             {screen === "permissionSetting" && (
               <PermissionSetting
                 go={go}
-                permissions={permissions}
                 onSavePermissions={handleSavePermissions}
               />
             )}
